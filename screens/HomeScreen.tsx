@@ -2,110 +2,18 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Alert,
   Animated,
   TextInput,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
-import { Search, Plus, ChevronRight, Trash2 } from 'lucide-react-native';
-import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { useRouter, useFocusEffect, useNavigation } from 'expo-router';
+import { Search } from 'lucide-react-native';
 import { Recipe } from '../types/Recipe';
 import { getAllRecipes, deleteRecipe } from '../utils/storage';
-import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '@/types/mobile-utils';
 import iOS from '@/styles/ios';
-type Props = StackScreenProps<RootStackParamList, 'Home'>;
-
-
-// ===========================
-// 🍽️ UTILITY FUNCTIONS
-// ===========================
-const getRecipeEmoji = (title: string): string => {
-  const map: { [key: string]: string } = {
-    cookie: '🍪', cake: '🍰', bread: '🥖', pasta: '🍝', soup: '🍲',
-    salad: '🥗', pizza: '🍕', burger: '🍔', croissant: '🥐', cupcake: '🧁', default: '🍽️'
-  };
-  const key = Object.keys(map).find(k => title.toLowerCase().includes(k)) || 'default';
-  return map[key];
-};
-
-const getRelativeTime = (date: string): string => {
-  const days = Math.floor((new Date().getTime() - new Date(date).getTime()) / 86400000);
-  if (days === 0) return "Aujourd'hui";
-  if (days === 1) return "Hier";
-  if (days < 7) return `Il y a ${days}j`;
-  return `Il y a ${Math.floor(days / 7)}sem`;
-};
-
-// ===========================
-// 🧩 RECIPE ROW COMPONENT
-// ===========================
-interface RecipeRowProps {
-  recipe: Recipe;
-  onPress: () => void;
-  onDelete: () => void;
-}
-
-const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete }) => {
-  const emoji = useMemo(() => getRecipeEmoji(recipe.title), [recipe.title]);
-  const relativeTime = useMemo(() => getRelativeTime(recipe.createdAt), [recipe.createdAt]);
-
-  const renderRightActions = () => (
-    <TouchableOpacity
-      style={styles.deleteButton}
-      onPress={onDelete}
-      activeOpacity={0.7}
-    >
-      <Trash2 size={22} color={iOS.colors.systemBackground} />
-    </TouchableOpacity>
-  );
-
-  return (
-    <Swipeable renderRightActions={renderRightActions}>
-      <TouchableOpacity
-        style={styles.recipeRow}
-        onPress={onPress}
-        activeOpacity={0.7}
-      >
-        {/* Emoji Icon */}
-        <View style={styles.emojiContainer}>
-          <Text style={styles.emoji}>{emoji}</Text>
-        </View>
-
-        {/* Content */}
-        <View style={styles.recipeContent}>
-          {/* Title */}
-          <Text style={styles.recipeRowTitle} numberOfLines={1}>
-            {recipe.title}
-          </Text>
-
-          {/* Metadata */}
-          <View style={styles.metadataRow}>
-            <View style={styles.flagsContainer}>
-              <Text>{recipe.detectedLanguage === 'fr' ? '🇫🇷' : '🇺🇸'}</Text>
-              {recipe.translationIds.length > 0 && (
-                <Text>{recipe.detectedLanguage === 'fr' ? '🇺🇸' : '🇫🇷'}</Text>
-              )}
-            </View>
-            <Text style={styles.metadataText}>•</Text>
-            <Text style={styles.metadataText}>{recipe.ingredients.length} ingr.</Text>
-            <Text style={styles.metadataText}>•</Text>
-            <Text style={styles.metadataText}>{relativeTime}</Text>
-          </View>
-        </View>
-
-        {/* Chevron */}
-        <ChevronRight size={20} color={iOS.colors.tertiaryLabel} />
-      </TouchableOpacity>
-
-      {/* Separator */}
-      <View style={styles.separator} />
-    </Swipeable>
-  );
-};
+import RecipeRow from '@/components/RecipeRow';
+import { ButtonAddRecipe } from '@/components/ButtonAddRecipe';
 
 // ===========================
 // 🧩 EMPTY STATE
@@ -123,13 +31,25 @@ const EmptyState: React.FC<{ onAddRecipe: () => void }> = ({ onAddRecipe }) => (
 // ===========================
 // 🏠 MAIN HOME SCREEN
 // ===========================
-export function HomeScreen({ navigation }: Props) {
+export function HomeScreen() {
+  const router = useRouter();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
+  const navigation = useNavigation();
+  const [count, setCount] = React.useState(0);
 
+  React.useEffect(() => {
+    // Use `setOptions` to update the button that we previously specified
+    // Now the button includes an `onPress` handler to update the count
+    navigation.setOptions({
+      headerRight: () => (
+        <ButtonAddRecipe onPress={()=>router.push('/(tabs)/add-recipe')}/>
+      ),
+    });
+  }, [navigation]);
   const loadRecipes = async () => {
     try {
       setLoading(true);
@@ -154,31 +74,6 @@ export function HomeScreen({ navigation }: Props) {
     () => recipeFamilies.filter(r => r.title.toLowerCase().includes(searchQuery.toLowerCase())),
     [recipeFamilies, searchQuery]
   );
-
-  // Navigation bar animations
-  const navBarProgress = scrollY.interpolate({
-    inputRange: [0, 52],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
-
-  const largeTitleOpacity = scrollY.interpolate({
-    inputRange: [0, 26],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
-  });
-
-  const smallTitleOpacity = scrollY.interpolate({
-    inputRange: [0, 52],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
-
-  const navBarBackgroundOpacity = scrollY.interpolate({
-    inputRange: [0, 52],
-    outputRange: [0.8, 1],
-    extrapolate: 'clamp',
-  });
 
   const handleDeleteRecipe = async (recipeId: string) => {
     Alert.alert(
@@ -224,8 +119,8 @@ export function HomeScreen({ navigation }: Props) {
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
       >
-        {/* Large Title Area */}
-        <View style={styles.largeTitleContainer}>
+        {/* Search Bar Area */}
+        <View style={styles.searchBarContainer}>
 
           {/* Search Bar */}
           <View style={[
@@ -248,7 +143,7 @@ export function HomeScreen({ navigation }: Props) {
         {/* List Section */}
         <View style={styles.listSection}>
           {filteredRecipes.length === 0 && !searchQuery && (
-            <EmptyState onAddRecipe={() => navigation.navigate('AddRecipe')} />
+            <EmptyState onAddRecipe={() => router.push('/(tabs)/add-recipe')} />
           )}
 
           {filteredRecipes.length === 0 && searchQuery && (
@@ -264,15 +159,12 @@ export function HomeScreen({ navigation }: Props) {
             <RecipeRow
               key={recipe.id}
               recipe={recipe}
-              onPress={() => navigation.navigate('RecipeDetail', { recipeId: recipe.id })}
+              onPress={() => router.push(`/recipe-detail/${recipe.id}`)}
               onDelete={() => handleDeleteRecipe(recipe.id)}
             />
           ))}
         </View>
       </Animated.ScrollView>
-
-      {/* Home Indicator */}
-      <View style={styles.homeIndicator} />
     </View>
   );
 }
@@ -298,47 +190,6 @@ const styles = StyleSheet.create({
     color: iOS.colors.tint,
   },
 
-  // Navigation Bar
-  navBarContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-  },
-  navBarBlur: {
-    borderBottomWidth: 0.5,
-    borderBottomColor: iOS.colors.separator,
-  },
-  statusBar: {
-    height: iOS.spacing.statusBar,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: iOS.spacing.standard,
-  },
-  statusBarText: {
-    ...iOS.typography.caption1,
-    color: iOS.colors.label,
-  },
-  navBar: {
-    height: iOS.spacing.navBar,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: iOS.spacing.standard,
-  },
-  navBarTitle: {
-    ...iOS.typography.headline,
-    color: iOS.colors.label,
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
   // Scrollable Content
   scrollView: {
     flex: 1,
@@ -347,20 +198,13 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
 
-  // Large Title
-  largeTitleContainer: {
+  // Search Bar
+    searchBarContainer: {
     paddingTop: iOS.spacing.statusBar + iOS.spacing.navBar,
     paddingHorizontal: iOS.spacing.standard,
     paddingBottom: iOS.spacing.compact,
     backgroundColor: iOS.colors.groupedBackground,
   },
-  largeTitle: {
-    ...iOS.typography.largeTitle,
-    color: iOS.colors.label,
-    marginBottom: iOS.spacing.standard,
-  },
-
-  // Search Bar
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -389,62 +233,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: iOS.spacing.standard,
     overflow: 'hidden',
-  },
-
-  // Recipe Row
-  recipeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: iOS.spacing.standard,
-    backgroundColor: iOS.colors.systemBackground,
-  },
-  emojiContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    backgroundColor: iOS.colors.systemGray6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  emoji: {
-    fontSize: 32,
-  },
-  recipeContent: {
-    flex: 1,
-  },
-  recipeRowTitle: {
-    ...iOS.typography.body,
-    fontWeight: '600',
-    color: iOS.colors.label,
-    marginBottom: 2,
-  },
-  metadataRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  flagsContainer: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  metadataText: {
-    ...iOS.typography.subheadline,
-    color: iOS.colors.secondaryLabel,
-  },
-  separator: {
-    height: 0.5,
-    backgroundColor: iOS.colors.separator,
-    marginLeft: 88,
-  },
-
-  // Delete Button
-  deleteButton: {
-    backgroundColor: iOS.colors.systemRed,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 80,
   },
 
   // Empty State
@@ -480,18 +268,5 @@ const styles = StyleSheet.create({
   noResultsText: {
     ...iOS.typography.body,
     color: iOS.colors.secondaryLabel,
-  },
-
-  // Home Indicator
-  homeIndicator: {
-    position: 'absolute',
-    bottom: 8,
-    left: '50%',
-    width: 134,
-    height: 5,
-    backgroundColor: iOS.colors.label,
-    borderRadius: 100,
-    opacity: 0.3,
-    transform: [{ translateX: -67 }],
   },
 });

@@ -13,15 +13,13 @@ import * as Sharing from 'expo-sharing';
 import { Recipe } from '../types/Recipe';
 import { getRecipeById, getRecipeFamily, deleteRecipe } from '../utils/storage';
 import { theme, commonStyles } from '../styles/theme';
-import { StackScreenProps } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '@/types/mobile-utils';
-
-type Props = StackScreenProps<RootStackParamList, 'RecipeDetail'>;
+import { useRouter, useLocalSearchParams, useNavigation } from 'expo-router';
 
 
-export function RecipeDetailScreen({ route, navigation }: Props) {
-  const { recipeId } = route.params;
+
+export function RecipeDetailScreen() {
+  const navigation = useNavigation()
+  const { recipeId } = useLocalSearchParams() as { recipeId: string };
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [recipeFamily, setRecipeFamily] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,14 +163,14 @@ export function RecipeDetailScreen({ route, navigation }: Props) {
   const handleTranslate = () => {
     if (!recipe) return;
     
-    navigation.navigate('TranslationPreview', {
-      recipe: {
-        title: recipe.title,
-        ingredients: recipe.ingredients,
-        steps: recipe.steps,
-        detectedLanguage: recipe.detectedLanguage
-      }
-    });
+    // navigation.navigate('TranslationPreview', {
+    //   recipe: {
+    //     title: recipe.title,
+    //     ingredients: recipe.ingredients,
+    //     steps: recipe.steps,
+    //     detectedLanguage: recipe.detectedLanguage
+    //   }
+    // });
   };
 
   const handleDelete = () => {
@@ -204,7 +202,7 @@ export function RecipeDetailScreen({ route, navigation }: Props) {
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('Home')
+            onPress: () => navigation.goBack()
           }
         ]
       );
@@ -265,14 +263,14 @@ ${recipe.steps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
         <Text style={styles.dateText}>
           Ajouté le {new Date(recipe.createdAt).toLocaleDateString('fr-FR')}
         </Text>
-        {!recipe.isOriginal && (
+        {/* {!recipe.isOriginal && (
           <TouchableOpacity 
             style={styles.viewOriginalButton}
             onPress={() => navigation.push('RecipeDetail', { recipeId: recipe.originalRecipeId! })}
           >
             <Text style={styles.viewOriginalText}>📖 Voir l'original</Text>
           </TouchableOpacity>
-        )}
+        )} */}
       </View>
 
       {/* Recipe Content */}
@@ -308,7 +306,7 @@ ${recipe.steps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
                   styles.languageCard,
                   familyRecipe.id === recipe.id && styles.currentLanguageCard
                 ]}
-                onPress={() => navigation.replace('RecipeDetail', { recipeId: familyRecipe.id })}
+                // onPress={() => navigation.replace('RecipeDetail', { recipeId: familyRecipe.id })}
               >
                 <Text style={styles.languageCardText}>
                   {familyRecipe.detectedLanguage === 'en' ? '🇺🇸 English' : '🇫🇷 Français'}
