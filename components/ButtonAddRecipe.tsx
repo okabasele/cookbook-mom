@@ -12,8 +12,7 @@ export const ButtonAddRecipe = ({ onPress }: { onPress: () => void }) => {
 
 const styles = StyleSheet.create({
   addButton: {
-    width: 44,
-    height: 44,
+   padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },

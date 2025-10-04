@@ -14,10 +14,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { detectLanguage } from '../utils/translation';
 import { theme, commonStyles } from '../styles/theme';
 import { LanguagePicker } from '../components/LanguagePicker';
-import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '@/types/mobile-utils';
-
-type Props = StackScreenProps<RootStackParamList, 'AddRecipe'>;
+import { useRouter } from 'expo-router';
 
 interface FormData {
   title: string;
@@ -25,7 +22,8 @@ interface FormData {
   steps: string;
 }
 
-export function AddRecipeScreen({ navigation }: Props) {
+export function AddRecipeScreen() {
+  const navigation = useRouter();
   const { control, handleSubmit, watch, formState: { errors } } = useForm<FormData>();
   const [detectedLanguage, setDetectedLanguage] = useState<'en' | 'fr'>('en');
   const [confidence, setConfidence] = useState(0);
@@ -67,7 +65,8 @@ export function AddRecipeScreen({ navigation }: Props) {
     
     try {
       setIsProcessing(true);
-      navigation.navigate('Home');
+      // navigation.navigate('Home');
+      navigation.replace('/(tabs)/index')
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de sauvegarder la recette');
     } finally {
@@ -79,14 +78,14 @@ export function AddRecipeScreen({ navigation }: Props) {
     if (!validateForm(data)) return;
     
     setIsProcessing(true);
-    navigation.navigate('TranslationPreview', {
-      recipe: {
-        title: data.title,
-        ingredients: data.ingredients.split('\n').filter(Boolean),
-        steps: data.steps.split('\n').filter(Boolean),
-        detectedLanguage
-      }
-    });
+    // navigation.navigate('TranslationPreview', {
+    //   recipe: {
+    //     title: data.title,
+    //     ingredients: data.ingredients.split('\n').filter(Boolean),
+    //     steps: data.steps.split('\n').filter(Boolean),
+    //     detectedLanguage
+    //   }
+    // });
     setIsProcessing(false);
   };
 
