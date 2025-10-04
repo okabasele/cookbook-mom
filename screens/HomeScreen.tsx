@@ -17,10 +17,11 @@ import { useRouter, useFocusEffect, useNavigation } from 'expo-router';
 import { Recipe } from '../types/Recipe';
 import { getAllRecipes, deleteRecipe } from '../utils/storage';
 import iOS from '@/styles/ios';
-import RecipeRow from '@/components/RecipeRow';
+import RecipeRow from '@/components/home/RecipeRow';
 import { ButtonAddRecipe } from '@/components/ButtonAddRecipe';
 import { SearchBarProps } from 'react-native-screens';
 import EmptyState from '@/components/home/EmptyState';
+import { seedRecipes } from '@/seed/recipe';
 
 
 // ===========================
@@ -50,6 +51,7 @@ export function HomeScreen() {
   const loadRecipes = async () => {
     try {
       setLoading(true);
+      await seedRecipes()
       const allRecipes = await getAllRecipes();
       setRecipes(allRecipes);
     } catch (error) {
