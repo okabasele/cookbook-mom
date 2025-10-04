@@ -26,6 +26,7 @@ const iOS = {
     systemGray4: '#D1D1D6',
     systemGray5: '#E5E5EA',
     systemGray6: '#F2F2F7',
+    systemOrange: '#FF9500',
   },
 
   typography: {
