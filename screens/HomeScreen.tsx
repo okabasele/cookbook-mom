@@ -1,32 +1,27 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Alert,
   Animated,
-  TextInput,
+  ScrollView,
 } from 'react-native';
 import { useRouter, useFocusEffect, useNavigation } from 'expo-router';
-import { Search } from 'lucide-react-native';
 import { Recipe } from '../types/Recipe';
 import { getAllRecipes, deleteRecipe } from '../utils/storage';
 import iOS from '@/styles/ios';
 import RecipeRow from '@/components/RecipeRow';
 import { ButtonAddRecipe } from '@/components/ButtonAddRecipe';
+import { SearchBarProps } from 'react-native-screens';
+import EmptyState from '@/components/home/EmptyState';
 
-// ===========================
-// 🧩 EMPTY STATE
-// ===========================
-const EmptyState: React.FC<{ onAddRecipe: () => void }> = ({ onAddRecipe }) => (
-  <View style={styles.emptyStateContainer}>
-    <Text style={styles.emptyIcon}>🧑‍🍳</Text>
-    <Text style={styles.emptyTitle}>Aucune recette</Text>
-    <Text style={styles.emptySubtitle}>
-      Commencez par ajouter votre première recette familiale
-    </Text>
-  </View>
-);
 
 // ===========================
 // 🏠 MAIN HOME SCREEN
@@ -36,17 +31,19 @@ export function HomeScreen() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchFocused, setSearchFocused] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
-  const [count, setCount] = React.useState(0);
 
   React.useEffect(() => {
-    // Use `setOptions` to update the button that we previously specified
-    // Now the button includes an `onPress` handler to update the count
     navigation.setOptions({
+      headerSearchBarOptions: {
+        placeholder: 'Rechercher une recette',
+        onChangeText: (event) => {
+          setSearchQuery(event.nativeEvent.text);
+        },
+      } as SearchBarProps,
       headerRight: () => (
-        <ButtonAddRecipe onPress={()=>router.push('/(tabs)/add-recipe')}/>
+        <ButtonAddRecipe onPress={() => router.push('/(tabs)/add-recipe')} />
       ),
     });
   }, [navigation]);
@@ -69,9 +66,12 @@ export function HomeScreen() {
   );
 
   // Filter recipes
-  const recipeFamilies = recipes.filter(r => r.isOriginal);
+  const recipeFamilies = recipes.filter((r) => r.isOriginal);
   const filteredRecipes = useMemo(
-    () => recipeFamilies.filter(r => r.title.toLowerCase().includes(searchQuery.toLowerCase())),
+    () =>
+      recipeFamilies.filter((r) =>
+        r.title.toLowerCase().includes(searchQuery.toLowerCase())
+      ),
     [recipeFamilies, searchQuery]
   );
 
@@ -106,66 +106,51 @@ export function HomeScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.main}
+    >
+      <View style={styles.container}>
+        {/* Scrollable Content */}
+        <Animated.ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* List Section */}
+          <View style={styles.listSection}>
+            {filteredRecipes.length === 0 && !searchQuery && (
+              <EmptyState
+                onAddRecipe={() => router.push('/(tabs)/add-recipe')}
+              />
+            )}
 
-      {/* Scrollable Content */}
-      <Animated.ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Search Bar Area */}
-        <View style={styles.searchBarContainer}>
+            {filteredRecipes.length === 0 && searchQuery && (
+              <View style={styles.noResultsContainer}>
+                <Text style={styles.noResultsIcon}>🔍</Text>
+                <Text style={styles.noResultsText}>
+                  Aucun résultat pour "{searchQuery}"
+                </Text>
+              </View>
+            )}
 
-          {/* Search Bar */}
-          <View style={[
-            styles.searchBar,
-            searchFocused && styles.searchBarFocused
-          ]}>
-            <Search size={16} color={iOS.colors.secondaryLabel} style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Rechercher"
-              placeholderTextColor={iOS.colors.secondaryLabel}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-            />
+            {filteredRecipes.map((recipe) => (
+              <RecipeRow
+                key={recipe.id}
+                recipe={recipe}
+                onPress={() => router.push(`/recipe-detail/${recipe.id}`)}
+                onDelete={() => handleDeleteRecipe(recipe.id)}
+              />
+            ))}
           </View>
-        </View>
-
-        {/* List Section */}
-        <View style={styles.listSection}>
-          {filteredRecipes.length === 0 && !searchQuery && (
-            <EmptyState onAddRecipe={() => router.push('/(tabs)/add-recipe')} />
-          )}
-
-          {filteredRecipes.length === 0 && searchQuery && (
-            <View style={styles.noResultsContainer}>
-              <Text style={styles.noResultsIcon}>🔍</Text>
-              <Text style={styles.noResultsText}>
-                Aucun résultat pour "{searchQuery}"
-              </Text>
-            </View>
-          )}
-
-          {filteredRecipes.map((recipe) => (
-            <RecipeRow
-              key={recipe.id}
-              recipe={recipe}
-              onPress={() => router.push(`/recipe-detail/${recipe.id}`)}
-              onDelete={() => handleDeleteRecipe(recipe.id)}
-            />
-          ))}
-        </View>
-      </Animated.ScrollView>
-    </View>
+        </Animated.ScrollView>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -173,6 +158,9 @@ export function HomeScreen() {
 // 🎨 STYLES
 // ===========================
 const styles = StyleSheet.create({
+  main:{
+    padding:16,
+  },
   container: {
     flex: 1,
     backgroundColor: iOS.colors.groupedBackground,
@@ -198,32 +186,10 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
 
-  // Search Bar
-    searchBarContainer: {
-    paddingTop: iOS.spacing.statusBar + iOS.spacing.navBar,
-    paddingHorizontal: iOS.spacing.standard,
-    paddingBottom: iOS.spacing.compact,
-    backgroundColor: iOS.colors.groupedBackground,
-  },
-  searchBar: {
+  headerRightContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: iOS.colors.systemFill,
-    borderRadius: 10,
-    paddingHorizontal: iOS.spacing.compact,
-    height: 36,
-  },
-  searchBarFocused: {
-    backgroundColor: iOS.colors.tertiarySystemFill,
-  },
-  searchIcon: {
-    marginRight: 6,
-  },
-  searchInput: {
-    flex: 1,
-    ...iOS.typography.body,
-    color: iOS.colors.label,
-    height: 36,
+    gap: 8,
   },
 
   // List Section
@@ -233,27 +199,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: iOS.spacing.standard,
     overflow: 'hidden',
-  },
-
-  // Empty State
-  emptyStateContainer: {
-    padding: 64,
-    alignItems: 'center',
-  },
-  emptyIcon: {
-    fontSize: 80,
-    marginBottom: iOS.spacing.standard * 2,
-  },
-  emptyTitle: {
-    ...iOS.typography.title2,
-    color: iOS.colors.label,
-    marginBottom: iOS.spacing.compact,
-  },
-  emptySubtitle: {
-    ...iOS.typography.body,
-    color: iOS.colors.secondaryLabel,
-    textAlign: 'center',
-    maxWidth: 280,
   },
 
   // No Results

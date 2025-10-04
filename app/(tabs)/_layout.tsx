@@ -4,8 +4,10 @@ export default function TabLayout() {
   return (
       <NativeTabs>
         <NativeTabs.Trigger name="index">
-          <Label>Home</Label>
-          <Icon sf="house.fill" />
+          <Label>
+            Recettes
+          </Label>
+          <Icon sf="book" />
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="add-recipe">
           <Icon sf="plus.circle" />
@@ -13,7 +15,7 @@ export default function TabLayout() {
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name="settings">
           <Icon sf="gear" />
-          <Label>Settings</Label>
+          <Label>Paramètres</Label>
         </NativeTabs.Trigger>
       </NativeTabs>
   );
