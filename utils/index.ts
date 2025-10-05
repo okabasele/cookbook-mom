@@ -3,9 +3,35 @@
 // ===========================
 export const getRecipeEmoji = (title: string): string => {
   const map: { [key: string]: string } = {
-    cookie: '🍪', cake: '🍰', bread: '🥖', pasta: '🍝', soup: '🍲',
-    salad: '🥗', pizza: '🍕', burger: '🍔', croissant: '🥐', cupcake: '🧁', default: '🍽️'
+    cookie: '🍪',
+    cake: '🍰',
+    bread: '🥖',
+    pasta: '🍝',
+    soup: '🍲',
+    salad: '🥗',
+    pizza: '🍕',
+    burger: '🍔',
+    croissant: '🥐',
+    cupcake: '🧁',
+    pie: '🥧',
+    taco: '🌮',
+    curry: '🍛',
+    sushi: '🍣',
+    steak: '🥩',
+    chicken: '🍗',
+    fish: '🐟',
+    rice: '🍚',
+    sandwich: '🥪',
+    ice: '🍦',
+    chocolate: '🍫',
+    coffee: '☕',
+    tea: '🍵',
+    juice: '🧃',
+    wine: '🍷',
+    beer: '🍺',
+    default: '🍽️',
   };
+
   const key = Object.keys(map).find(k => title.toLowerCase().includes(k)) || 'default';
   return map[key];
 };

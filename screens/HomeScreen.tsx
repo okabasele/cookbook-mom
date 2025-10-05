@@ -21,7 +21,6 @@ import { ButtonAddRecipe } from '@/components/ButtonAddRecipe';
 import { SearchBarProps } from 'react-native-screens';
 import RecipeList from '@/components/home/RecipeList';
 
-
 // ===========================
 // 🏠 MAIN HOME SCREEN
 // ===========================

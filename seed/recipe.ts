@@ -1,5 +1,5 @@
 import { Recipe } from "@/types/Recipe";
-import { saveRecipe } from "@/utils/storage";
+import { deleteRecipe, saveAllRecipes, saveRecipe } from "@/utils/storage";
 
 const recipes: Recipe[] = [
     {
@@ -23,41 +23,91 @@ const recipes: Recipe[] = [
             'Season with salt and black pepper to taste. Serve immediately.'
         ],
         detectedLanguage: 'en',
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(Date.now()).toISOString(), // Today
         isOriginal: true,
         translationIds: []
     },
     {
         id: '2',
-        title: 'Tacos al Pastor',
+        title: 'Tacos 2 viandes',
         ingredients: [
             '500g pork shoulder, thinly sliced',
-            '100g pineapple, diced',
-            '2 tbsp achiote paste',
-            '1 tbsp chili powder',
-            '1 tsp cumin',
-            '1 tsp oregano',
-            '2 cloves garlic, minced',
-            '1/4 cup orange juice',
+           
         ],
         steps: [
             'Marinate the pork with achiote paste, chili powder, cumin, oregano, garlic, and orange juice for at least 1 hour.',
-            'Cook the marinated pork in a hot skillet until browned and cooked through.',
-            'Warm the tortillas and fill them with the pork and diced pineapple.',
-            'Serve with your favorite toppings, such as cilantro, onions, and lime.'
-        ],
+      ],
         detectedLanguage: 'en',
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(Date.now()).toISOString(), // Today
         isOriginal: true,
         translationIds: []
-    }
-]
+    },
+    {
+        id: '3',
+        title: 'Tacos al Pastor',
+        ingredients: [
+            '500g pork shoulder, thinly sliced',
+        ],
+        steps: [
+            'Marinate.',
+        ],
+        detectedLanguage: 'en',
+        createdAt: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+        isOriginal: true,
+        translationIds: []
+    },
+    {
+        id: '4',
+        title: 'Chicken Curry',
+        ingredients: [
+            '500g chicken breast',
+
+        ],
+        steps: [
+            'Cook.',
+  ],
+        detectedLanguage: 'en',
+        createdAt: new Date(Date.now() - 3 * 86400000).toISOString(), // Last 7 days
+        isOriginal: true,
+        translationIds: []
+    },
+    {
+        id: '5',
+        title: 'Beef Stroganoff',
+        ingredients: [
+            '500g beef strips',
+
+        ],
+        steps: [
+            'Cook',
+    ],
+        detectedLanguage: 'en',
+        createdAt: new Date(Date.now() - 15 * 86400000).toISOString(), // Last 30 days
+        isOriginal: true,
+        translationIds: []
+    },
+    {
+        id: '6',
+        title: 'Apple Pie',
+        ingredients: [
+            '2 cups flour',
+        ],
+        steps: [
+            'Prepare the pie crust by mixing flour, butter, and sugar.',
+        ],
+        detectedLanguage: 'en',
+        createdAt: new Date(Date.now() - 60 * 86400000).toISOString(), // Older
+        isOriginal: true,
+        translationIds: []
+    },
+];
 
 export const seedRecipes = async () => {
     try {
-        await Promise.all(recipes.map(r => saveRecipe(r)));
+          console.log('Seeding recipes...');
+        await saveAllRecipes(recipes);
         console.log('Recipes seeded successfully');
     } catch (error) {
         console.error('Error seeding recipes:', error);
     }
-}
+};

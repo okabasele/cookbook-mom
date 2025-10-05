@@ -12,35 +12,87 @@ type RecipeListProps = {
   toRecipeDetail: (id: string) => void;
   onAddRecipe?: () => void;
 }
+
+const sectionsTitleMap: Record<string, string> = {
+  today: "Aujourd'hui",
+  yesterday: 'Hier',
+  last7days: 'Derniers 7 jours',
+  last30days: 'Derniers 30 jours',
+  older: 'Plus ancien',
+}
+
 const RecipeList = ({recipes, searchQuery, handleDeleteRecipe, toRecipeDetail}: RecipeListProps) => {
+const filteredRecipe = recipes.reduce<Record<string, Recipe[]>>((acc, recipe) => {
+  const createdAt = new Date(recipe.createdAt);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - createdAt.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); // Use Math.floor instead of Math.ceil
+  let key = 'older';
+  if (diffDays === 0) {
+    key = 'today';
+  } else if (diffDays === 1) {
+    key = 'yesterday';
+  } else if (diffDays <= 7) {
+    key = 'last7days';
+  } else if (diffDays <= 30) {
+    key = 'last30days';
+  }
+
+  if (!acc[key]) {
+    acc[key] = [];
+  }
+  acc[key].push(recipe);
+  return acc;
+}, {});
+
   return (
-          <View style={styles.listSection}>
+    <View style={styles.container}>
             {recipes.length === 0 && !searchQuery && (
+          <View style={styles.listSection}>
               <EmptyState />
+            </View>
             )}
             {recipes.length === 0 && searchQuery && (
-              <View style={styles.noResultsContainer}>
+             <View style={styles.listSection}>
+             <View style={styles.noResultsContainer}>
                 <Text style={styles.noResultsIcon}>🔍</Text>
                 <Text style={styles.noResultsText}>
                   Aucun résultat pour "{searchQuery}"
                 </Text>
               </View>
+            </View>
             )}
 
-            {recipes.map((recipe, index) => (
-              <RecipeRow
-                key={recipe.id}
-                recipe={recipe}
-                onPress={() => toRecipeDetail(recipe.id)}
-                onDelete={() => handleDeleteRecipe(recipe.id)}
-               showDivider={index !== recipes.length - 1}
-              />
+            {Object.entries(filteredRecipe).map(([section, recipesInSection]) => (
+              <View key={section}>
+                {recipesInSection.length > 0 && (
+                  <View>
+                    <Text style={styles.sectionTitle}>{sectionsTitleMap[section]}</Text>
+                    <View style={styles.listSection}>
+                    {recipesInSection.map((recipe, index) => (
+                      <RecipeRow
+                        key={recipe.id}
+                        recipe={recipe}
+                        onPress={() => toRecipeDetail(recipe.id)}
+                        onDelete={() => handleDeleteRecipe(recipe.id)}
+                        showDivider={index !== recipesInSection.length - 1}
+                      />
+                    ))}
+                  </View>
+                  </View>
+                )}
+              </View>
             ))}
           </View>
   )
 }
 
 const styles = StyleSheet.create({
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: iOS.spacing.standard,
+  },
     listSection: {
     marginTop: iOS.spacing.standard,
     backgroundColor: iOS.colors.systemBackground,
@@ -48,7 +100,10 @@ const styles = StyleSheet.create({
     marginHorizontal: iOS.spacing.standard,
     overflow: 'hidden',
   },
-    // No Results
+  sectionTitle: {
+    ...iOS.typography.headline,
+    color: iOS.colors.label,
+  },
   noResultsContainer: {
     padding: 48,
     alignItems: 'center',

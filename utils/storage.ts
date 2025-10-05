@@ -21,6 +21,15 @@ export const saveRecipe = async (recipe: Recipe): Promise<void> => {
   }
 };
 
+export const saveAllRecipes = async (recipes: Recipe[]): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(RECIPES_KEY, JSON.stringify(recipes));
+  } catch (error) {
+    console.error('Error saving all recipes:', error);
+    throw new Error('Impossible de sauvegarder toutes les recettes');
+  }
+};
+
 export const getAllRecipes = async (): Promise<Recipe[]> => {
   try {
     const data = await AsyncStorage.getItem(RECIPES_KEY);

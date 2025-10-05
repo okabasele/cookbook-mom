@@ -1,14 +1,12 @@
 import iOS from '@/styles/ios';
 import { Recipe } from '@/types/Recipe';
-import { getFlagEmoji, getRecipeEmoji, getRelativeTime } from '@/utils';
-import { ChevronRight, Trash2, Flag } from 'lucide-react-native';
+import { getFlagEmoji, getRecipeEmoji } from '@/utils';
+import { ChevronRight } from 'lucide-react-native';
 import React, { useMemo } from 'react';
 import { Text, TouchableOpacity, StyleSheet, View } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
-import Animated, {
+import {
   useAnimatedStyle,
-  interpolate,
-  Extrapolation,
   SharedValue,
 } from 'react-native-reanimated';
 import ActionButton from '../ui/ActionButton';
@@ -22,10 +20,6 @@ interface RecipeRowProps {
 
 const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete, showDivider }) => {
   const emoji = useMemo(() => getRecipeEmoji(recipe.title), [recipe.title]);
-  const relativeTime = useMemo(
-    () => getRelativeTime(recipe.createdAt),
-    [recipe.createdAt]
-  );
 
   const renderRightActions = (
     progress: SharedValue<number>,
@@ -59,7 +53,6 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete, showDi
       rightThreshold={40}
     >
       <TouchableOpacity
-        style={styles.rowContainer}
         onPress={onPress}
         activeOpacity={0.98}
       >
@@ -73,7 +66,6 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete, showDi
               <Text style={styles.title} numberOfLines={1}>
                 {recipe.title}
               </Text>
-              <Text style={styles.time}>{relativeTime}</Text>
             </View>
 
             <View style={styles.detailsRow}>
@@ -102,9 +94,6 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete, showDi
 };
 
 const styles = StyleSheet.create({
-  rowContainer: {
-    // backgroundColor: iOS.colors.systemBackground,
-  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -150,11 +139,6 @@ const styles = StyleSheet.create({
     color: iOS.colors.label,
     flex: 1,
     marginRight: 8,
-  },
-  time: {
-    fontSize: 15,
-    color: iOS.colors.secondaryLabel,
-    fontWeight: '400',
   },
   detailsRow: {
     flexDirection: 'row',
