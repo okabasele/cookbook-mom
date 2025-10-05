@@ -1,6 +1,6 @@
 import iOS from '@/styles/ios';
 import { Recipe } from '@/types/Recipe';
-import { getRecipeEmoji, getRelativeTime } from '@/utils';
+import { getFlagEmoji, getRecipeEmoji, getRelativeTime } from '@/utils';
 import { ChevronRight, Trash2, Flag } from 'lucide-react-native';
 import React, { useMemo } from 'react';
 import { Text, TouchableOpacity, StyleSheet, View } from 'react-native';
@@ -9,40 +9,30 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
-  SharedValue
+  SharedValue,
 } from 'react-native-reanimated';
+import ActionButton from '../ui/ActionButton';
 
 interface RecipeRowProps {
   recipe: Recipe;
   onPress: () => void;
   onDelete: () => void;
+  showDivider?: boolean;
 }
 
-const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete }) => {
+const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete, showDivider }) => {
   const emoji = useMemo(() => getRecipeEmoji(recipe.title), [recipe.title]);
-  const relativeTime = useMemo(() => getRelativeTime(recipe.createdAt), [recipe.createdAt]);
+  const relativeTime = useMemo(
+    () => getRelativeTime(recipe.createdAt),
+    [recipe.createdAt]
+  );
 
-  const renderRightActions = (progress: SharedValue<number>, drag: SharedValue<number>) => {
+  const renderRightActions = (
+    progress: SharedValue<number>,
+    drag: SharedValue<number>
+  ) => {
     const deleteAnimatedStyle = useAnimatedStyle(() => {
-      const translateX = interpolate(
-        drag.value,
-        [-150, -75, 0],
-        [0, 0, 75],
-        Extrapolation.CLAMP
-      );
-
-      return {
-        transform: [{ translateX }],
-      };
-    });
-
-    const flagAnimatedStyle = useAnimatedStyle(() => {
-      const translateX = interpolate(
-        drag.value,
-        [-150, -75, 0],
-        [0, 0, 150],
-        Extrapolation.CLAMP
-      );
+      const translateX = drag.value + 80;
 
       return {
         transform: [{ translateX }],
@@ -51,25 +41,12 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete }) => {
 
     return (
       <View style={styles.actionsContainer}>
-        <Animated.View style={[styles.actionButton, styles.flagButton, flagAnimatedStyle]}>
-          <TouchableOpacity
-            style={styles.actionTouchable}
-            onPress={() => {}}
-            activeOpacity={0.7}
-          >
-            <Flag size={20} color="#fff" fill="#fff" />
-          </TouchableOpacity>
-        </Animated.View>
-
-        <Animated.View style={[styles.actionButton, styles.deleteButton, deleteAnimatedStyle]}>
-          <TouchableOpacity
-            style={styles.actionTouchable}
-            onPress={onDelete}
-            activeOpacity={0.7}
-          >
-            <Trash2 size={20} color="#fff" />
-          </TouchableOpacity>
-        </Animated.View>
+        <ActionButton
+          type="delete"
+          animatedStyle={deleteAnimatedStyle}
+          onPress={onDelete}
+          actionText="Effacer"
+        />
       </View>
     );
   };
@@ -86,7 +63,7 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete }) => {
         onPress={onPress}
         activeOpacity={0.98}
       >
-        <View style={styles.row}>
+        <View style={showDivider ? styles.rowWithDivider : styles.row}>
           <View style={styles.emojiContainer}>
             <Text style={styles.emoji}>{emoji}</Text>
           </View>
@@ -94,7 +71,7 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete }) => {
           <View style={styles.contentContainer}>
             <View style={styles.headerRow}>
               <Text style={styles.title} numberOfLines={1}>
-                {recipe.title || 'Untitled Recipe'}
+                {recipe.title}
               </Text>
               <Text style={styles.time}>{relativeTime}</Text>
             </View>
@@ -102,9 +79,14 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete }) => {
             <View style={styles.detailsRow}>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>
-                  {recipe.ingredients.length} ingredient{recipe.ingredients.length !== 1 ? 's' : ''}
+                  {recipe.ingredients.length} ingredient
+                  {recipe.ingredients.length !== 1 ? 's' : ''}
                 </Text>
               </View>
+                <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {getFlagEmoji(recipe.detectedLanguage)}</Text>
+                </View>
             </View>
           </View>
 
@@ -121,14 +103,20 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete }) => {
 
 const styles = StyleSheet.create({
   rowContainer: {
-    backgroundColor: iOS.colors.systemBackground,
+    // backgroundColor: iOS.colors.systemBackground,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: iOS.colors.systemBackground,
+    minHeight: 76,
+  },
+    rowWithDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: iOS.colors.separator,
     minHeight: 76,
@@ -171,6 +159,7 @@ const styles = StyleSheet.create({
   detailsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
   badge: {
     backgroundColor: iOS.colors.secondarySystemBackground,
@@ -189,26 +178,10 @@ const styles = StyleSheet.create({
   actionsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
     height: '100%',
+    backgroundColor: 'transparent',
   },
-  actionButton: {
-    width: 75,
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actionTouchable: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  flagButton: {
-    backgroundColor: iOS.colors.systemOrange,
-  },
-  deleteButton: {
-    backgroundColor: iOS.colors.systemRed,
-  },
-})
+});
 
-export default RecipeRow
+export default RecipeRow;

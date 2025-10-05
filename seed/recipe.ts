@@ -26,6 +26,30 @@ const recipes: Recipe[] = [
         createdAt: new Date().toISOString(),
         isOriginal: true,
         translationIds: []
+    },
+    {
+        id: '2',
+        title: 'Tacos al Pastor',
+        ingredients: [
+            '500g pork shoulder, thinly sliced',
+            '100g pineapple, diced',
+            '2 tbsp achiote paste',
+            '1 tbsp chili powder',
+            '1 tsp cumin',
+            '1 tsp oregano',
+            '2 cloves garlic, minced',
+            '1/4 cup orange juice',
+        ],
+        steps: [
+            'Marinate the pork with achiote paste, chili powder, cumin, oregano, garlic, and orange juice for at least 1 hour.',
+            'Cook the marinated pork in a hot skillet until browned and cooked through.',
+            'Warm the tortillas and fill them with the pork and diced pineapple.',
+            'Serve with your favorite toppings, such as cilantro, onions, and lime.'
+        ],
+        detectedLanguage: 'en',
+        createdAt: new Date().toISOString(),
+        isOriginal: true,
+        translationIds: []
     }
 ]
 

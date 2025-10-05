@@ -17,3 +17,11 @@ export const getRelativeTime = (date: string): string => {
   if (days < 7) return `Il y a ${days}j`;
   return `Il y a ${Math.floor(days / 7)}sem`;
 };
+
+export const getFlagEmoji = (countryCode: string): string => {
+  const flags: { [key: string]: string } = {
+    en: '🇬🇧', fr: '🇫🇷', es: '🇪🇸', de: '🇩🇪', it: '🇮🇹', jp: '🇯🇵', cn: '🇨🇳',
+    default: '🏳️'
+  };
+  return flags[countryCode] || countryCode
+};

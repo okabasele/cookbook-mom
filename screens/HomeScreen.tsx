@@ -17,11 +17,9 @@ import { useRouter, useFocusEffect, useNavigation } from 'expo-router';
 import { Recipe } from '../types/Recipe';
 import { getAllRecipes, deleteRecipe } from '../utils/storage';
 import iOS from '@/styles/ios';
-import RecipeRow from '@/components/home/RecipeRow';
 import { ButtonAddRecipe } from '@/components/ButtonAddRecipe';
 import { SearchBarProps } from 'react-native-screens';
-import EmptyState from '@/components/home/EmptyState';
-import { seedRecipes } from '@/seed/recipe';
+import RecipeList from '@/components/home/RecipeList';
 
 
 // ===========================
@@ -51,7 +49,6 @@ export function HomeScreen() {
   const loadRecipes = async () => {
     try {
       setLoading(true);
-      await seedRecipes()
       const allRecipes = await getAllRecipes();
       setRecipes(allRecipes);
     } catch (error) {
@@ -98,6 +95,9 @@ export function HomeScreen() {
       ]
     );
   };
+  const handleToRecipeDetail = (recipeId: string) => {
+    router.push(`/recipe-detail/${recipeId}`);
+  };
 
   if (loading) {
     return (
@@ -124,32 +124,7 @@ export function HomeScreen() {
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
         >
-          {/* List Section */}
-          <View style={styles.listSection}>
-            {filteredRecipes.length === 0 && !searchQuery && (
-              <EmptyState
-                onAddRecipe={() => router.push('/(tabs)/add-recipe')}
-              />
-            )}
-
-            {filteredRecipes.length === 0 && searchQuery && (
-              <View style={styles.noResultsContainer}>
-                <Text style={styles.noResultsIcon}>🔍</Text>
-                <Text style={styles.noResultsText}>
-                  Aucun résultat pour "{searchQuery}"
-                </Text>
-              </View>
-            )}
-
-            {filteredRecipes.map((recipe) => (
-              <RecipeRow
-                key={recipe.id}
-                recipe={recipe}
-                onPress={() => router.push(`/recipe-detail/${recipe.id}`)}
-                onDelete={() => handleDeleteRecipe(recipe.id)}
-              />
-            ))}
-          </View>
+         <RecipeList recipes={filteredRecipes} searchQuery={searchQuery} handleDeleteRecipe={handleDeleteRecipe} toRecipeDetail={handleToRecipeDetail} />
         </Animated.ScrollView>
       </View>
     </ScrollView>
@@ -192,28 +167,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-
-  // List Section
-  listSection: {
-    marginTop: iOS.spacing.standard,
-    backgroundColor: iOS.colors.systemBackground,
-    borderRadius: 10,
-    marginHorizontal: iOS.spacing.standard,
-    overflow: 'hidden',
-  },
-
-  // No Results
-  noResultsContainer: {
-    padding: 48,
-    alignItems: 'center',
-  },
-  noResultsIcon: {
-    fontSize: 56,
-    marginBottom: iOS.spacing.standard,
-  },
-  noResultsText: {
-    ...iOS.typography.body,
-    color: iOS.colors.secondaryLabel,
   },
 });
