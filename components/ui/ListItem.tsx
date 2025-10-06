@@ -1,34 +1,37 @@
 import React from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { X } from 'lucide-react-native';
-import iOS from '../styles/ios';
-import { Text } from 'react-native';
+import iOS from '@/styles/ios';
+import { ConvertedItem } from '@/types/mobile-utils';
 
-interface ConvertedItem {
-  converted: string;
-  original: string;
-}
-
-interface IngredientItemProps {
-  ingredient: ConvertedItem;
-  onUpdate: (ingredient: ConvertedItem) => void;
+interface ListItemProps<T extends ConvertedItem> {
+  item: T;
+  number?: number; // Optional for numbered items like steps
+  onUpdate: (item: T) => void;
   onDelete: () => void;
 }
 
-export function IngredientItem({ ingredient, onUpdate, onDelete }: IngredientItemProps) {
+export function ListItem<T extends ConvertedItem>({
+  item,
+  number,
+  onUpdate,
+  onDelete,
+}: ListItemProps<T>) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
+        {number !== undefined && <Text style={styles.number}>{number}.</Text>}
         <View style={styles.inputContainer}>
           <TextInput
-            value={ingredient.converted}
-            onChangeText={(text) => onUpdate({ ...ingredient, converted: text })}
+            value={item.converted}
+            onChangeText={(text) => onUpdate({ ...item, converted: text })}
             style={styles.input}
             placeholderTextColor={iOS.colors.tertiaryLabel}
+            multiline={number !== undefined} // Multiline for steps
           />
-          {ingredient.original !== ingredient.converted && (
+          {item.original!== undefined || item.original !== item.converted && (
             <Text style={styles.originalText}>
-              ({ingredient.original})
+              ({item.original})
             </Text>
           )}
         </View>
@@ -55,8 +58,15 @@ const styles = StyleSheet.create({
 
   content: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: iOS.spacing.compact,
+  },
+
+  number: {
+    ...iOS.typography.body,
+    color: iOS.colors.secondaryLabel,
+    fontWeight: '600',
+    minWidth: 24,
   },
 
   inputContainer: {
