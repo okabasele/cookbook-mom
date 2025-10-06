@@ -1,21 +1,32 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import iOS from '../styles/ios';
+import iOS from '@/styles/ios';
 
-const DIFFICULTY_OPTIONS = [
-  { value: 'facile', label: 'Facile', emoji: '🟢' },
-  { value: 'moyen', label: 'Moyen', emoji: '🟡' },
-  { value: 'difficile', label: 'Difficile', emoji: '🔴' },
-];
-
-interface DifficultyPickerModalProps {
-  visible: boolean;
+interface PickerOption {
   value: string;
-  onChange: (difficulty: string) => void;
-  onClose: () => void;
+  label: string;
+  icon?: string; // Emoji or flag
 }
 
-export function DifficultyPickerModal({ visible, value, onChange, onClose }: DifficultyPickerModalProps) {
+interface PickerModalProps {
+  visible: boolean;
+  options: PickerOption[];
+  value: string;
+  title: string;
+  onChange: (selectedValue: string) => void;
+  onClose: () => void;
+  showValidateButton?: boolean;
+}
+
+function PickerModal({
+  visible,
+  options,
+  value,
+  title,
+  onChange,
+  onClose,
+  showValidateButton = false,
+}: PickerModalProps) {
   if (!visible) return null;
 
   return (
@@ -28,34 +39,43 @@ export function DifficultyPickerModal({ visible, value, onChange, onClose }: Dif
       <View style={styles.overlay} onTouchEnd={onClose}>
         <View style={styles.modal} onTouchEnd={(e) => e.stopPropagation()}>
           <View style={styles.header}>
-            <Text style={styles.headerText}>Difficulté</Text>
+            <Text style={styles.headerText}>{title}</Text>
           </View>
 
-          {DIFFICULTY_OPTIONS.map((option) => (
+          {options.map((option) => (
             <TouchableOpacity
               key={option.value}
               onPress={() => {
                 onChange(option.value);
-                onClose();
+                if (!showValidateButton) onClose(); // Close immediately if no validate button
               }}
               style={[
-                styles.difficultyOption,
-                value === option.value && styles.difficultyOptionSelected,
+                styles.option,
+                value === option.value && styles.optionSelected,
               ]}
             >
-              <Text style={styles.emoji}>{option.emoji}</Text>
-              <Text style={styles.difficultyLabel}>{option.label}</Text>
+              <View style={styles.optionContent}>
+                {option.icon && <Text style={styles.icon}>{option.icon}</Text>}
+                <Text style={styles.optionLabel}>{option.label}</Text>
+              </View>
+              {value === option.value && (
+                <Text style={styles.checkIcon}>✔️</Text>
+              )}
             </TouchableOpacity>
           ))}
 
-          <TouchableOpacity style={styles.validateButton} onPress={onClose}>
-            <Text style={styles.validateButtonText}>Valider</Text>
-          </TouchableOpacity>
+          {showValidateButton && (
+            <TouchableOpacity style={styles.validateButton} onPress={onClose}>
+              <Text style={styles.validateButtonText}>Valider</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </Modal>
   );
 }
+
+export default PickerModal;
 
 const styles = StyleSheet.create({
   overlay: {
@@ -85,10 +105,10 @@ const styles = StyleSheet.create({
     color: iOS.colors.label,
   },
 
-  difficultyOption: {
+  option: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: iOS.spacing.compact,
+    justifyContent: 'space-between',
     backgroundColor: 'transparent',
     borderRadius: 10,
     padding: iOS.spacing.standard,
@@ -96,17 +116,28 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
 
-  difficultyOptionSelected: {
+  optionSelected: {
     backgroundColor: iOS.colors.systemGray6,
   },
 
-  emoji: {
+  optionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: iOS.spacing.compact,
+  },
+
+  icon: {
     fontSize: 24,
   },
 
-  difficultyLabel: {
+  optionLabel: {
     ...iOS.typography.body,
     color: iOS.colors.label,
+  },
+
+  checkIcon: {
+    fontSize: 20,
+    color: iOS.colors.tint,
   },
 
   validateButton: {
