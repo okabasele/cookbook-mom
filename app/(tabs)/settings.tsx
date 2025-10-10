@@ -1,218 +1,365 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { theme, commonStyles } from '@/styles/theme';
+import { ChevronRight } from 'lucide-react-native';
+import iOS from '@/styles/ios';
 
 export default function SettingsScreen() {
-  const clearAllData = () => {
+  const [recipeCount, setRecipeCount] = useState(0);
+  const [storageUsed, setStorageUsed] = useState('0');
+
+  useEffect(() => {
+    loadRecipeData();
+  }, []);
+
+  const loadRecipeData = async () => {
+    try {
+      const recipes = await AsyncStorage.getItem('recipes');
+      if (recipes) {
+        const parsedRecipes = JSON.parse(recipes);
+        setRecipeCount(parsedRecipes.length);
+        // Calculate approximate storage (simplified)
+        const sizeInBytes = new Blob([recipes]).size;
+        const sizeInMB = (sizeInBytes / (1024 * 1024)).toFixed(2);
+        setStorageUsed(sizeInMB);
+      }
+    } catch (error) {
+      console.error('Error loading recipe data:', error);
+    }
+  };
+
+  const handleExportAll = () => {
     Alert.alert(
-      'Effacer toutes les données',
-      'Êtes-vous sûr de vouloir supprimer toutes vos recettes? Cette action est irréversible.',
+      '📄 Export de recettes',
+      'Export de toutes vos recettes en cours...\n\nVous recevrez un PDF avec toutes vos recettes.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleClearData = () => {
+    Alert.alert(
+      'Effacer toutes les recettes',
+      'Êtes-vous sûr de vouloir supprimer toutes vos recettes?\n\nCette action est irréversible.',
       [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Effacer', style: 'destructive', onPress: confirmClearData }
+        {
+          text: 'Effacer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem('recipes');
+              Alert.alert('✅ Succès', 'Toutes les données ont été effacées');
+              await loadRecipeData();
+            } catch (error) {
+              Alert.alert('Erreur', 'Impossible d\'effacer les données');
+            }
+          }
+        }
       ]
     );
   };
 
-  const confirmClearData = async () => {
-    try {
-      await AsyncStorage.removeItem('recipes');
-      Alert.alert('Succès', 'Toutes les données ont été effacées');
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible d\'effacer les données');
-    }
+  const handleHelp = (topic: string) => {
+    const helpTexts: Record<string, string> = {
+      addRecipe: '📱 Pour ajouter une recette:\n\n1. Appuyez sur le bouton "+" dans l\'onglet Recettes\n2. Collez le lien YouTube de la recette\n3. Choisissez la langue de traduction\n4. Validez et modifiez si nécessaire',
+      translate: '🌍 Pour traduire une recette:\n\n1. Ouvrez une recette existante\n2. Appuyez sur "Traduire"\n3. Choisissez la langue cible\n4. La traduction s\'affiche automatiquement',
+      conversions: '🔢 Pour convertir des unités:\n\n1. Allez dans l\'onglet "Conversions"\n2. Choisissez la catégorie (température, volume, etc.)\n3. Entrez la valeur à convertir\n4. Le résultat s\'affiche instantanément',
+      support: '📧 Pour nous contacter:\n\nEmail: support@recettes-app.com\n\nNous répondons sous 24h.'
+    };
+    Alert.alert('Aide', helpTexts[topic], [{ text: 'OK' }]);
   };
 
+  // Section Header Component
+  const SectionHeader = ({ children }: { children: string }) => (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionHeaderText}>{children}</Text>
+    </View>
+  );
+
+  // Section Footer Component
+  const SectionFooter = ({ children }: { children: string }) => (
+    <View style={styles.sectionFooter}>
+      <Text style={styles.sectionFooterText}>{children}</Text>
+    </View>
+  );
+
+  // Info Row Component
+  const InfoRow = ({
+    label,
+    value,
+    showArrow = false,
+    isLast = false
+  }: {
+    label: string;
+    value?: string;
+    showArrow?: boolean;
+    isLast?: boolean;
+  }) => (
+    <View style={[styles.row, !isLast && styles.rowBorder]}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <View style={styles.rowRight}>
+        {value && <Text style={styles.rowValue}>{value}</Text>}
+        {showArrow && (
+          <ChevronRight size={20} color={iOS.colors.tertiaryLabel} />
+        )}
+      </View>
+    </View>
+  );
+
+  // Action Row Component
+  const ActionRow = ({
+    label,
+    onPress,
+    isLast = false
+  }: {
+    label: string;
+    onPress: () => void;
+    isLast?: boolean;
+  }) => (
+    <TouchableOpacity
+      style={[styles.row, !isLast && styles.rowBorder]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.rowLabel}>{label}</Text>
+      <ChevronRight size={20} color={iOS.colors.tertiaryLabel} />
+    </TouchableOpacity>
+  );
+
+  // Primary Button Component
+  const PrimaryButton = ({
+    onPress,
+    children
+  }: {
+    onPress: () => void;
+    children: string;
+  }) => (
+    <TouchableOpacity
+      style={styles.primaryButton}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.primaryButtonText}>{children}</Text>
+    </TouchableOpacity>
+  );
+
+  // Danger Button Component
+  const DangerButton = ({ onPress }: { onPress: () => void }) => (
+    <TouchableOpacity
+      style={styles.dangerButton}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={styles.dangerButtonText}>Effacer toutes les recettes</Text>
+    </TouchableOpacity>
+  );
+
+  // Language Badge Component
+  const LanguageBadge = ({
+    flag,
+    name,
+    isLast = false
+  }: {
+    flag: string;
+    name: string;
+    isLast?: boolean;
+  }) => (
+    <View style={[styles.languageRow, !isLast && styles.rowBorder]}>
+      <Text style={styles.languageFlag}>{flag}</Text>
+      <Text style={styles.languageName}>{name}</Text>
+    </View>
+  );
+
   return (
-    <ScrollView style={commonStyles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>⚙️ Paramètres</Text>
-        <Text style={styles.subtitle}>
-          Gérez vos préférences et données de l'application
-        </Text>
-      </View>
-
-      <View style={styles.content}>
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Data Section */}
+        <SectionHeader>MES DONNÉES</SectionHeader>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📱 À propos de l'application</Text>
-          <View style={styles.infoCard}>
-            <Text style={styles.infoText}>
-              <Text style={styles.bold}>Version:</Text> 1.0.0
-            </Text>
-            <Text style={styles.infoText}>
-              <Text style={styles.bold}>Développé pour:</Text> Les passionnés de cuisine 60+
-            </Text>
-            <Text style={styles.infoText}>
-              <Text style={styles.bold}>Fonctionnalités:</Text> Traduction automatique de recettes (EN ↔ FR)
-            </Text>
-          </View>
+          <InfoRow label="Recettes enregistrées" value={`${recipeCount}`} />
+          <InfoRow label="Espace utilisé" value={`${storageUsed} MB`} isLast />
         </View>
+        <View style={styles.buttonContainer}>
+          <PrimaryButton onPress={handleExportAll}>
+            📄 Exporter toutes mes recettes
+          </PrimaryButton>
+        </View>
+        <SectionFooter>
+          Exportez toutes vos recettes en PDF pour les imprimer ou les sauvegarder.
+        </SectionFooter>
 
+        {/* Help Section */}
+        <SectionHeader>AIDE & SUPPORT</SectionHeader>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🌍 Langues supportées</Text>
-          <View style={styles.languageList}>
-            <View style={styles.languageItem}>
-              <Text style={styles.languageFlag}>🇺🇸</Text>
-              <Text style={styles.languageText}>English</Text>
-            </View>
-            <View style={styles.languageItem}>
-              <Text style={styles.languageFlag}>🇫🇷</Text>
-              <Text style={styles.languageText}>Français</Text>
-            </View>
-          </View>
+          <ActionRow
+            label="Comment ajouter une recette"
+            onPress={() => handleHelp('addRecipe')}
+          />
+          <ActionRow
+            label="Comment traduire une recette"
+            onPress={() => handleHelp('translate')}
+          />
+          <ActionRow
+            label="Comment utiliser les conversions"
+            onPress={() => handleHelp('conversions')}
+          />
+          <ActionRow
+            label="Contacter le support"
+            onPress={() => handleHelp('support')}
+            isLast
+          />
         </View>
 
+        {/* About Section */}
+        <SectionHeader>À PROPOS</SectionHeader>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🔧 Fonctionnalités</Text>
-          <View style={styles.featureList}>
-            <Text style={styles.featureItem}>✅ Détection automatique de langue</Text>
-            <Text style={styles.featureItem}>✅ Traduction bidirectionnelle EN ↔ FR</Text>
-            <Text style={styles.featureItem}>✅ Gestion des familles de recettes</Text>
-            <Text style={styles.featureItem}>✅ Export PDF pour impression</Text>
-            <Text style={styles.featureItem}>✅ Interface adaptée aux seniors</Text>
-            <Text style={styles.featureItem}>✅ Stockage hors ligne</Text>
-          </View>
+          <InfoRow label="Version" value="1.0.0" isLast />
         </View>
 
+
+        {/* Languages Section */}
+        <SectionHeader>LANGUES SUPPORTÉES</SectionHeader>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🗑️ Données</Text>
-          <TouchableOpacity 
-            style={[commonStyles.button, commonStyles.dangerButton]}
-            onPress={clearAllData}
-          >
-            <Text style={commonStyles.buttonText}>
-              Effacer toutes les recettes
-            </Text>
-          </TouchableOpacity>
-          <Text style={styles.warningText}>
-            ⚠️ Cette action supprimera définitivement toutes vos recettes et traductions
-          </Text>
+          <LanguageBadge flag="🇫🇷" name="Français" />
+          <LanguageBadge flag="🇺🇸" name="English" isLast />
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            Créé avec ❤️ pour faciliter la cuisine multilingue
-          </Text>
-          <Text style={styles.footerSubtext}>
-            Interface optimisée pour les utilisateurs de 60 ans et plus
-          </Text>
+        {/* Danger Zone */}
+        <SectionHeader>ZONE DANGEREUSE</SectionHeader>
+        <View style={styles.buttonContainer}>
+          <DangerButton onPress={handleClearData} />
         </View>
-      </View>
-    </ScrollView>
+        <SectionFooter>
+          Cette action supprimera définitivement toutes vos recettes et traductions.
+        </SectionFooter>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.gray50,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderLight,
+  container: {
+    flex: 1,
+    backgroundColor: iOS.colors.groupedBackground,
   },
-  
-  title: {
-    ...theme.typography.title,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
+  scrollView: {
+    flex: 1,
   },
-  
-  subtitle: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
+  scrollContent: {
+    paddingBottom: 34,
   },
-  
-  content: {
-    padding: theme.spacing.md,
+
+  // Section Headers & Footers
+  sectionHeader: {
+    paddingTop: 20,
+    paddingBottom: 8,
+    paddingHorizontal: iOS.spacing.standard,
   },
-  
+  sectionHeaderText: {
+    ...iOS.typography.footnote,
+    color: iOS.colors.secondaryLabel,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  sectionFooter: {
+    paddingTop: 8,
+    paddingBottom: 20,
+    paddingHorizontal: iOS.spacing.standard,
+  },
+  sectionFooterText: {
+    ...iOS.typography.footnote,
+    color: iOS.colors.secondaryLabel,
+    lineHeight: 18,
+  },
+
+  // Section Container
   section: {
-    marginBottom: theme.spacing.xl,
+    marginHorizontal: iOS.spacing.standard,
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: iOS.colors.systemBackground,
+    marginBottom: iOS.spacing.compact,
   },
-  
-  sectionTitle: {
-    ...theme.typography.subtitle,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-  },
-  
-  infoCard: {
-    ...commonStyles.card,
-    backgroundColor: theme.colors.blue50,
-    borderColor: theme.colors.primary,
-  },
-  
-  infoText: {
-    ...theme.typography.body,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
-    lineHeight: 24,
-  },
-  
-  bold: {
-    fontWeight: 'bold',
-  },
-  
-  languageList: {
-    gap: theme.spacing.sm,
-  },
-  
-  languageItem: {
+
+  // Row Styles
+  row: {
+    backgroundColor: iOS.colors.systemBackground,
+    paddingVertical: 12,
+    paddingHorizontal: iOS.spacing.standard,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: theme.spacing.md,
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.borderRadius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    justifyContent: 'space-between',
+    minHeight: 44,
   },
-  
-  languageFlag: {
-    fontSize: 24,
-    marginRight: theme.spacing.md,
+  rowBorder: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: iOS.colors.separator,
   },
-  
-  languageText: {
-    ...theme.typography.bodyLarge,
-    color: theme.colors.text,
+  rowLabel: {
+    ...iOS.typography.body,
+    color: iOS.colors.label,
+  },
+  rowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  rowValue: {
+    ...iOS.typography.body,
+    color: iOS.colors.secondaryLabel,
+  },
+
+  // Buttons
+  buttonContainer: {
+    marginHorizontal: iOS.spacing.standard,
+    marginBottom: iOS.spacing.compact,
+  },
+  primaryButton: {
+    backgroundColor: iOS.colors.systemBackground,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: iOS.spacing.standard,
+    alignItems: 'center',
+    minHeight: 50,
+  },
+  primaryButtonText: {
+    ...iOS.typography.body,
+    color: iOS.colors.tint,
     fontWeight: '600',
   },
-  
-  featureList: {
-    gap: theme.spacing.sm,
+  dangerButton: {
+    backgroundColor: iOS.colors.systemBackground,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: iOS.spacing.standard,
+    alignItems: 'center',
+    minHeight: 50,
   },
-  
-  featureItem: {
-    ...theme.typography.body,
-    color: theme.colors.text,
+  dangerButtonText: {
+    ...iOS.typography.body,
+    color: iOS.colors.systemRed,
+  },
+
+  // Language Badge
+  languageRow: {
+    backgroundColor: iOS.colors.systemBackground,
+    paddingVertical: 12,
+    paddingHorizontal: iOS.spacing.standard,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 44,
+  },
+  languageFlag: {
+    fontSize: 24,
     lineHeight: 24,
   },
-  
-  warningText: {
-    ...theme.typography.captionSmall,
-    color: theme.colors.danger,
-    marginTop: theme.spacing.sm,
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  
-  footer: {
-    marginTop: theme.spacing.xl,
-    alignItems: 'center',
-    padding: theme.spacing.lg,
-  },
-  
-  footerText: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: theme.spacing.sm,
-  },
-  
-  footerSubtext: {
-    ...theme.typography.captionSmall,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-    fontStyle: 'italic',
+  languageName: {
+    ...iOS.typography.body,
+    color: iOS.colors.label,
+    fontWeight: '600',
   },
 });

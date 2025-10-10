@@ -14,6 +14,7 @@ export default function RootLayout() {
           options={{
             title: 'Recipe Detail',
             headerShown: true,
+            headerBackTitle: 'Back',
           }}
         />
       </Stack>
