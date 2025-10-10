@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, ScrollView } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Alert,
+  ScrollView,
+} from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import iOS from '../styles/ios';
 import { URLInputStage } from './stages/URLInputStage';
 import { AnalyzingStage } from './stages/AnalyzingStage';
 import { EditRecipeStage } from './stages/EditRecipeStage';
 import { mockYouTubeExtraction } from '../utils/conversions';
-import  PickerModal from '@/components/ui/PickerModal';
+import PickerModal from '@/components/ui/PickerModal';
 import { ConvertedItem } from '@/types/mobile-utils';
+import { NavButton } from '@/components/ui/NavButton';
 
 const LANGUAGES = [
   { value: 'fr', label: 'Français', icon: '🇫🇷' },
@@ -29,7 +35,7 @@ export function AddRecipeScreen() {
   const router = useRouter();
 
   // Stage management
-  const [stage, setStage] = useState<Stage>('edit');
+  const [stage, setStage] = useState<Stage>('input');
   const [analysisStep, setAnalysisStep] = useState(0); // 0: Extract, 1: Translate, 2: Convert
 
   // Form data
@@ -43,7 +49,7 @@ export function AddRecipeScreen() {
   const [steps, setSteps] = useState<ConvertedItem[]>([]);
   const [prepTime, setPrepTime] = useState(15);
   const [cookTime, setCookTime] = useState(15);
-  const [difficulty, setDifficulty] = useState('facile');
+  const [difficulty, setDifficulty] = useState('easy');
   const [showDifficultyPicker, setShowDifficultyPicker] = useState(false);
 
   const selectedLanguage =
@@ -53,6 +59,14 @@ export function AddRecipeScreen() {
   React.useEffect(() => {
     navigation.setOptions({
       title: stage === 'input' ? 'YouTube' : 'Nouvelle recette',
+      headerRight: () => (
+        <NavButton
+          onPress={handleSave}
+          label="Sauvegarder"
+          disabled={!canSave}
+        />
+      ),
+      headerLeft: () => <NavButton onPress={handleCancel} label="Annuler" disabled={stage === 'input'} />,
     });
   }, [navigation, stage]);
   const handleAnalyze = async () => {
@@ -130,7 +144,7 @@ export function AddRecipeScreen() {
       [
         {
           text: 'OK',
-          onPress: () => router.back(),
+          onPress: () => router.push('/index'),
         },
       ]
     );
@@ -172,7 +186,7 @@ export function AddRecipeScreen() {
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'OK',
-          onPress: (text?:string) => {
+          onPress: (text?: string) => {
             const time = parseInt(text || '0');
             if (!isNaN(time) && time > 0) {
               setPrepTime(time);
@@ -193,7 +207,7 @@ export function AddRecipeScreen() {
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'OK',
-          onPress: (text?:string) => {
+          onPress: (text?: string) => {
             const time = parseInt(text || '0');
             if (!isNaN(time) && time > 0) {
               setCookTime(time);
@@ -206,7 +220,8 @@ export function AddRecipeScreen() {
     );
   };
 
-  const canSave = title.trim() && ingredients.length > 0 && steps.length > 0;
+  const canSave =
+    title.trim().length > 0 && ingredients.length > 0 && steps.length > 0;
 
   return (
     <ScrollView style={styles.container}>
@@ -281,7 +296,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: iOS.colors.groupedBackground,
   },
-    content: {
+  content: {
     flex: 1,
   },
   navContent: {
@@ -292,25 +307,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: iOS.spacing.standard,
   },
 
-  navButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    padding: iOS.spacing.compact,
-  },
+  // navButton: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  //   gap: 4,
+  //   padding: iOS.spacing.compact,
+  // },
 
-  navButtonText: {
-    ...iOS.typography.body,
-    color: iOS.colors.tint,
-  },
+  // navButtonText: {
+  //   ...iOS.typography.body,
+  //   color: iOS.colors.tint,
+  // },
 
-  navButtonBold: {
-    fontWeight: '600',
-  },
+  // navButtonBold: {
+  //   fontWeight: '600',
+  // },
 
-  navButtonDisabled: {
-    color: iOS.colors.tertiaryLabel,
-  },
+  // navButtonDisabled: {
+  //   color: iOS.colors.tertiaryLabel,
+  // },
 
   navSpacer: {
     width: 60,
@@ -320,5 +335,4 @@ const styles = StyleSheet.create({
     ...iOS.typography.headline,
     color: iOS.colors.label,
   },
-
 });

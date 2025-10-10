@@ -119,20 +119,18 @@ const styles = StyleSheet.create({
     ...iOS.typography.body,
     color: iOS.colors.label,
     backgroundColor: iOS.colors.systemBackground,
-    borderWidth: 1,
-    borderColor: iOS.colors.separator,
     borderRadius: 10,
     padding: iOS.spacing.standard,
   },
 
   inputError: {
-    borderColor: iOS.colors.tint,
-    borderWidth: 2,
+    borderColor: iOS.colors.systemRed,
+    borderWidth: 1,
   },
 
   errorText: {
     ...iOS.typography.footnote,
-    color: iOS.colors.tint,
+    color: iOS.colors.systemRed,
     marginTop: iOS.spacing.compact,
   },
 
@@ -141,8 +139,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: iOS.colors.systemBackground,
-    borderWidth: 1,
-    borderColor: iOS.colors.separator,
     borderRadius: 10,
     padding: iOS.spacing.standard,
     minHeight: 50,
