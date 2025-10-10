@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import EmptyState from './EmptyState'
 import RecipeRow from './RecipeRow'
 import iOS from '@/styles/ios'
+import { customObjectGroupBy } from '@/utils'
 
 type RecipeListProps = {
   recipes: Recipe[];
@@ -22,28 +23,17 @@ const sectionsTitleMap: Record<string, string> = {
 }
 
 const RecipeList = ({recipes, searchQuery, handleDeleteRecipe, toRecipeDetail}: RecipeListProps) => {
-const filteredRecipe = recipes.reduce<Record<string, Recipe[]>>((acc, recipe) => {
+const filteredRecipe = customObjectGroupBy<Recipe, string>(recipes, (recipe) => {
   const createdAt = new Date(recipe.createdAt);
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - createdAt.getTime());
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); // Use Math.floor instead of Math.ceil
-  let key = 'older';
-  if (diffDays === 0) {
-    key = 'today';
-  } else if (diffDays === 1) {
-    key = 'yesterday';
-  } else if (diffDays <= 7) {
-    key = 'last7days';
-  } else if (diffDays <= 30) {
-    key = 'last30days';
-  }
-
-  if (!acc[key]) {
-    acc[key] = [];
-  }
-  acc[key].push(recipe);
-  return acc;
-}, {});
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays <= 7) return 'last7days';
+  if (diffDays <= 30) return 'last30days';
+  return 'older';
+});
 
   return (
     <View style={styles.container}>
