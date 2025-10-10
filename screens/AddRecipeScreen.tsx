@@ -7,6 +7,7 @@ import { AnalyzingStage } from './stages/AnalyzingStage';
 import { EditRecipeStage } from './stages/EditRecipeStage';
 import { mockYouTubeExtraction } from '../utils/conversions';
 import  PickerModal from '@/components/ui/PickerModal';
+import { ConvertedItem } from '@/types/mobile-utils';
 
 const LANGUAGES = [
   { value: 'fr', label: 'Français', icon: '🇫🇷' },
@@ -23,11 +24,6 @@ const DIFFICULTY_OPTIONS = [
 ];
 
 type Stage = 'input' | 'analyzing' | 'edit';
-
-interface ConvertedItem {
-  converted: string;
-  original: string;
-}
 
 export function AddRecipeScreen() {
   const router = useRouter();
@@ -176,7 +172,7 @@ export function AddRecipeScreen() {
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'OK',
-          onPress: (text) => {
+          onPress: (text?:string) => {
             const time = parseInt(text || '0');
             if (!isNaN(time) && time > 0) {
               setPrepTime(time);
@@ -197,7 +193,7 @@ export function AddRecipeScreen() {
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'OK',
-          onPress: (text) => {
+          onPress: (text?:string) => {
             const time = parseInt(text || '0');
             if (!isNaN(time) && time > 0) {
               setCookTime(time);
