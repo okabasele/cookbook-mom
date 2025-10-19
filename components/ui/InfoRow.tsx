@@ -5,14 +5,16 @@ import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 type InfoRowProps = {
   label: string;
   value: string;
-  onPress: () => void;
+  icon?: React.ReactNode;
+  onPress?: () => void;
   hideDivider?: boolean;
 }
 
-const InfoRow = ({ label, value, onPress, hideDivider }: InfoRowProps) => (
+const InfoRow = ({ label, value, icon, onPress, hideDivider }: InfoRowProps) => (
   <TouchableOpacity style={hideDivider? styles.infoRow:styles.infoRowWithDivider} onPress={onPress}>
     <Text style={styles.infoLabel}>{label}</Text>
     <Text style={styles.infoValue}>{value}</Text>
+    {icon}
   </TouchableOpacity>
 );
 

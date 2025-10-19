@@ -6,14 +6,20 @@ type SectionProps = {
   title: string;
   count?: number;
   children?: React.ReactNode;
+  footer?: string;
 };
 
-const Section = ({ title, count, children }: SectionProps) => (
+const Section = ({ title, count, children, footer }: SectionProps) => (
   <>
     <Text style={styles.sectionHeader}>
       {title} {count !== undefined && `(${count})`}
     </Text>
     <View style={styles.section}>{children}</View>
+    {footer && (
+      <View style={styles.sectionFooter}>
+        <Text style={styles.sectionFooterText}>{footer}</Text>
+      </View>
+    )}
   </>
 );
 
@@ -33,6 +39,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: iOS.spacing.standard,
     paddingTop: 12,
     paddingBottom: 8,
+  },
+  sectionFooter: {
+    paddingTop: 8,
+    paddingBottom: 20,
+    paddingHorizontal: iOS.spacing.standard,
+  },
+  sectionFooterText: {
+    ...iOS.typography.footnote,
+    color: iOS.colors.secondaryLabel,
+    lineHeight: 18,
   },
 });
 

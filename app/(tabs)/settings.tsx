@@ -8,9 +8,9 @@ import {
   Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronRight } from 'lucide-react-native';
 import iOS from '@/styles/ios';
-
+import InfoRow from '@/components/ui/InfoRow';
+import ActionRow from '@/components/ui/ActionRow';
 export default function SettingsScreen() {
   const [recipeCount, setRecipeCount] = useState(0);
   const [storageUsed, setStorageUsed] = useState('0');
@@ -94,49 +94,6 @@ export default function SettingsScreen() {
     </View>
   );
 
-  // Info Row Component
-  const InfoRow = ({
-    label,
-    value,
-    showArrow = false,
-    isLast = false,
-  }: {
-    label: string;
-    value?: string;
-    showArrow?: boolean;
-    isLast?: boolean;
-  }) => (
-    <View style={[styles.row, !isLast && styles.rowBorder]}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <View style={styles.rowRight}>
-        {value && <Text style={styles.rowValue}>{value}</Text>}
-        {showArrow && (
-          <ChevronRight size={20} color={iOS.colors.tertiaryLabel} />
-        )}
-      </View>
-    </View>
-  );
-
-  // Action Row Component
-  const ActionRow = ({
-    label,
-    onPress,
-    isLast = false,
-  }: {
-    label: string;
-    onPress: () => void;
-    isLast?: boolean;
-  }) => (
-    <TouchableOpacity
-      style={[styles.row, !isLast && styles.rowBorder]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <Text style={styles.rowLabel}>{label}</Text>
-      <ChevronRight size={20} color={iOS.colors.tertiaryLabel} />
-    </TouchableOpacity>
-  );
-
   // Primary Button Component
   const PrimaryButton = ({
     onPress,
@@ -192,7 +149,7 @@ export default function SettingsScreen() {
         <SectionHeader>MES DONNÉES</SectionHeader>
         <View style={styles.section}>
           <InfoRow label="Recettes enregistrées" value={`${recipeCount}`} />
-          <InfoRow label="Espace utilisé" value={`${storageUsed} MB`} isLast />
+          <InfoRow label="Espace utilisé" value={`${storageUsed} MB`} hideDivider />
         </View>
         <View style={styles.buttonContainer}>
           <PrimaryButton onPress={handleExportAll}>
@@ -229,7 +186,7 @@ export default function SettingsScreen() {
         {/* About Section */}
         <SectionHeader>À PROPOS</SectionHeader>
         <View style={styles.section}>
-          <InfoRow label="Version" value="1.0.0" isLast />
+          <InfoRow label="Version" value="1.0.0" hideDivider />
         </View>
 
         {/* Languages Section */}
@@ -298,33 +255,10 @@ const styles = StyleSheet.create({
   },
 
   // Row Styles
-  row: {
-    backgroundColor: iOS.colors.systemBackground,
-    paddingVertical: 12,
-    paddingHorizontal: iOS.spacing.standard,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 44,
-  },
   rowBorder: {
     borderBottomWidth: 0.5,
     borderBottomColor: iOS.colors.separator,
   },
-  rowLabel: {
-    ...iOS.typography.body,
-    color: iOS.colors.label,
-  },
-  rowRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  rowValue: {
-    ...iOS.typography.body,
-    color: iOS.colors.secondaryLabel,
-  },
-
   // Buttons
   buttonContainer: {
     marginHorizontal: iOS.spacing.standard,
