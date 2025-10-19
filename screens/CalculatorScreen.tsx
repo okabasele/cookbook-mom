@@ -1,4 +1,4 @@
-import type { ConversionCategory, ConversionData } from '@/types/mobile-utils';
+import type { ConversionCategory } from '@/types/mobile-utils';
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -12,9 +12,8 @@ import { ChevronRight, ArrowLeftRight, ChevronLeft } from 'lucide-react-native';
 import iOS from '@/styles/ios';
 import Section from '@/components/ui/Section';
 import { CONVERSIONS } from '@/utils';
-import Button from '@/components/ui/Button';
 import { NavButton } from '@/components/ui/NavButton';
-import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 // ===========================
 //  COMPONENTS
 // ===========================
@@ -83,18 +82,15 @@ const UnitSegmentedControl = ({
   </View>
 );
 
-interface CalculatorScreenProps {
-  category: ConversionCategory;
-  data: ConversionData;
-  onBack: () => void;
-}
+const categoryTitles: Record<ConversionCategory, string> = {
+  temperature: 'Température',
+  volume: 'Volume',
+  weight: 'Poids',
+  length: 'Longueur',
+};
 
-const CalculatorScreen = ({}: //   category,
-//   data,
-//   onBack,
-CalculatorScreenProps) => {
+const CalculatorScreen = () => {
   const navigation = useNavigation();
-  const router = useRouter();
   const { category } = useLocalSearchParams() as { category: string };
   const data = CONVERSIONS[category as ConversionCategory];
 
@@ -104,6 +100,7 @@ CalculatorScreenProps) => {
 
   useEffect(() => {
     navigation.setOptions({
+      title: categoryTitles[category as ConversionCategory],
       headerLeft: () => (
         <NavButton
           onPress={navigation.goBack}
@@ -143,7 +140,9 @@ CalculatorScreenProps) => {
   const result = calculateResult();
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container}
+      contentInsetAdjustmentBehavior="automatic"
+    >
       <View style={styles.scrollView}>
         {/* Calculator Card */}
 
