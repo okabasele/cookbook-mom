@@ -1,3 +1,3 @@
-import { AddRecipeScreen } from '@/screens/AddRecipeScreen';
+import { ConversionCalculatorScreen } from '@/screens/ConversionCalculatorScreen';
 
-export default AddRecipeScreen;
+export default ConversionCalculatorScreen;

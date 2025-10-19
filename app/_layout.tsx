@@ -30,6 +30,16 @@ export default function RootLayout() {
           
            }}
         />
+         <Stack.Screen
+          name="calculator/[category]"
+          options={{  headerLargeTitle: true,
+          headerTransparent: true,
+          headerTintColor: theme === 'dark' ? 'white' : 'black',
+          headerLargeStyle: { backgroundColor: 'transparent' },
+          headerBlurEffect: isGlassAvailable ? undefined : blurEffect,
+          title: 'Calculatrice',
+           }}
+        />
       </Stack>
     </GestureHandlerRootView>
   );

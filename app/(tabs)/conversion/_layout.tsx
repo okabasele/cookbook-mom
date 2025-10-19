@@ -19,6 +19,7 @@ export default function ScreenLayout() {
           headerTintColor: theme === 'dark' ? 'white' : 'black',
           headerLargeStyle: { backgroundColor: 'transparent' },
           headerBlurEffect: isGlassAvailable ? undefined : blurEffect,
+          title: 'Convertisseur d\'unités',
         }}
       />
     </Stack>
