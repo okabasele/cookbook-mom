@@ -10,7 +10,7 @@ export default function TabLayout() {
         light: iOS.colors.tint,
       })}
     >
-      <NativeTabs.Trigger name="index">
+      <NativeTabs.Trigger name="recipes">
         <Label>Recettes</Label>
         <Icon sf="book" />
       </NativeTabs.Trigger>
