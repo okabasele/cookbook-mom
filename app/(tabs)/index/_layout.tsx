@@ -2,7 +2,7 @@ import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Stack } from "expo-router";
 import { useColorScheme } from "react-native";
 
-export default function HomeLayout() {
+export default function ScreenLayout() {
   const rawTheme = useColorScheme();
   const theme = rawTheme === "dark" ? "dark" : "light";
   const isGlassAvailable = isLiquidGlassAvailable();

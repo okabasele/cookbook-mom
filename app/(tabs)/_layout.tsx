@@ -18,6 +18,10 @@ export default function TabLayout() {
         <Icon sf="plus.circle" />
         <Label>Ajouter</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="conversion">
+        <Icon sf="numbers" />
+        <Label>Conversion</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="settings">
         <Icon sf="gear" />
         <Label>Paramètres</Label>
