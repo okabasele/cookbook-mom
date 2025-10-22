@@ -11,7 +11,6 @@ interface AnalyzingStageProps {
 export function AnalyzingStage({ analysisStep, selectedLanguageName }: AnalyzingStageProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.emoji}>⚡</Text>
 
       <Text style={styles.title}>Traitement en cours...</Text>
 
@@ -33,7 +32,7 @@ export function AnalyzingStage({ analysisStep, selectedLanguageName }: Analyzing
         <ProgressStep
           completed={analysisStep > 2}
           active={analysisStep === 2}
-          label="Conversion des unités de mesure"
+          label="Conversion des unités"
         />
       </View>
     </View>

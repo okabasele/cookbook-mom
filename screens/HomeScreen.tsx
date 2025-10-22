@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-} from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -17,13 +11,11 @@ import { useRouter, useFocusEffect, useNavigation } from 'expo-router';
 import { Recipe } from '../types/Recipe';
 import { getAllRecipes, deleteRecipe } from '../utils/storage';
 import iOS from '@/styles/ios';
-import { ButtonAddRecipe } from '@/components/ButtonAddRecipe';
 import { SearchBarProps } from 'react-native-screens';
 import RecipeList from '@/components/home/RecipeList';
+import { NavButton } from '@/components/ui/NavButton';
+import { Plus } from 'lucide-react-native';
 
-// ===========================
-// 🏠 MAIN HOME SCREEN
-// ===========================
 export function HomeScreen() {
   const router = useRouter();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -41,7 +33,10 @@ export function HomeScreen() {
         },
       } as SearchBarProps,
       headerRight: () => (
-        <ButtonAddRecipe onPress={() => router.push('/(tabs)/add-recipe')} />
+        <NavButton
+          onPress={() => router.push('/add-recipe')}
+          icon={<Plus color={iOS.colors.tint} size={20} />}
+        />
       ),
     });
   }, [navigation]);
@@ -123,19 +118,21 @@ export function HomeScreen() {
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
         >
-         <RecipeList recipes={filteredRecipes} searchQuery={searchQuery} handleDeleteRecipe={handleDeleteRecipe} toRecipeDetail={handleToRecipeDetail} />
+          <RecipeList
+            recipes={filteredRecipes}
+            searchQuery={searchQuery}
+            handleDeleteRecipe={handleDeleteRecipe}
+            toRecipeDetail={handleToRecipeDetail}
+          />
         </Animated.ScrollView>
       </View>
     </ScrollView>
   );
 }
 
-// ===========================
-// 🎨 STYLES
-// ===========================
 const styles = StyleSheet.create({
-  main:{
-    padding:16,
+  main: {
+    padding: 16,
   },
   container: {
     flex: 1,

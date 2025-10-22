@@ -1,32 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
   StyleSheet,
   Alert,
-  Share
+  Share,
 } from 'react-native';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import { ChevronLeft, Share2 } from 'lucide-react-native';
 import { Recipe } from '../types/Recipe';
 import { getRecipeById, getRecipeFamily, deleteRecipe } from '../utils/storage';
-import { theme, commonStyles } from '../styles/theme';
+import iOS from '@/styles/ios';
 import { useRouter, useLocalSearchParams, useNavigation } from 'expo-router';
+import { NavButton } from '@/components/ui/NavButton';
+import CheckboxItem from '@/components/ui/CheckboxItem';
+import Section from '@/components/ui/Section';
 
+// ===========================
+// 🧩 SUB-COMPONENTS
+// ===========================
 
+// Section Header Component
+interface SectionHeaderProps {
+  children: string;
+  count?: number;
+}
+
+const SectionHeader: React.FC<SectionHeaderProps> = ({ children, count }) => (
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionHeaderText}>
+      {children} {count !== undefined && `(${count})`}
+    </Text>
+  </View>
+);
+
+// ===========================
+// 🏠 MAIN COMPONENT
+// ===========================
 
 export function RecipeDetailScreen() {
-  const navigation = useNavigation()
+  const navigation = useNavigation();
+  const router = useRouter();
   const { recipeId } = useLocalSearchParams() as { recipeId: string };
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [recipeFamily, setRecipeFamily] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isExporting, setIsExporting] = useState(false);
+
+  // Checkbox states for ingredients and steps
+  const [checkedIngredients, setCheckedIngredients] = useState<
+    Record<number, boolean>
+  >({});
+  const [checkedSteps, setCheckedSteps] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     loadRecipe();
+    navigation.setOptions({
+      headerLeft: () => (
+        <NavButton
+          onPress={navigation.goBack}
+          icon={<ChevronLeft size={18} color={iOS.colors.tint} />}
+        />
+      ),
+      headerRight: () => (
+        <NavButton
+          onPress={exportToPDF}
+          label="Export"
+          icon={<Share2 size={18} color={iOS.colors.tint} />}
+        />
+      ),
+    });
   }, [recipeId]);
 
   const loadRecipe = async () => {
@@ -38,9 +83,10 @@ export function RecipeDetailScreen() {
         navigation.goBack();
         return;
       }
-      
+
       setRecipe(loadedRecipe);
-      
+      navigation.setOptions({ title: loadedRecipe.title || 'Détails de la recette' });
+
       // Load recipe family (original + translations)
       const family = await getRecipeFamily(recipeId);
       setRecipeFamily(family);
@@ -52,58 +98,70 @@ export function RecipeDetailScreen() {
     }
   };
 
+  const toggleIngredient = (index: number) => {
+    setCheckedIngredients((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  const toggleStep = (index: number) => {
+    setCheckedSteps((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
   const exportToPDF = async () => {
     if (!recipe) return;
-    
+
     try {
-      setIsExporting(true);
-      
       const html = `
         <html>
           <head>
             <meta charset="utf-8">
             <style>
-              body { 
-                font-family: Arial, sans-serif; 
-                padding: 40px; 
-                font-size: 16px; 
+              body {
+                font-family: Arial, sans-serif;
+                padding: 40px;
+                font-size: 16px;
                 line-height: 1.6;
                 color: #111827;
               }
               .header {
                 text-align: center;
                 margin-bottom: 40px;
-                border-bottom: 3px solid #2563eb;
+                border-bottom: 3px solid #8B2B3E;
                 padding-bottom: 20px;
               }
-              .language { 
-                background: #f3f4f6; 
-                padding: 12px; 
-                border-radius: 8px; 
+              .language {
+                background: #f3f4f6;
+                padding: 12px;
+                border-radius: 8px;
                 text-align: center;
                 margin-bottom: 20px;
                 font-size: 14px;
                 color: #6b7280;
               }
-              h1 { 
-                color: #2563eb; 
+              h1 {
+                color: #8B2B3E;
                 margin: 0;
                 font-size: 32px;
               }
-              h2 { 
-                color: #374151; 
-                margin-top: 40px; 
+              h2 {
+                color: #374151;
+                margin-top: 40px;
                 margin-bottom: 20px;
                 font-size: 24px;
-                border-left: 4px solid #2563eb;
+                border-left: 4px solid #8B2B3E;
                 padding-left: 16px;
               }
-              ul, ol { 
-                padding-left: 30px; 
+              ul, ol {
+                padding-left: 30px;
               }
-              li { 
-                margin-bottom: 12px; 
-                line-height: 1.6; 
+              li {
+                margin-bottom: 12px;
+                line-height: 1.6;
               }
               .date {
                 text-align: center;
@@ -117,109 +175,76 @@ export function RecipeDetailScreen() {
           <body>
             <div class="header">
               <div class="language">
-                ${recipe.detectedLanguage === 'en' ? '🇺🇸 English Recipe' : '🇫🇷 Recette en Français'}
+                ${
+                  recipe.detectedLanguage === 'en'
+                    ? '🇺🇸 English Recipe'
+                    : '🇫🇷 Recette en Français'
+                }
                 ${!recipe.isOriginal ? ' (Traduite)' : ''}
               </div>
               <h1>${recipe.title}</h1>
             </div>
-            
-            <h2>${recipe.detectedLanguage === 'fr' ? 'Ingrédients' : 'Ingredients'}</h2>
+
+            <h2>${
+              recipe.detectedLanguage === 'fr' ? 'Ingrédients' : 'Ingredients'
+            }</h2>
             <ul>
-              ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
+              ${recipe.ingredients
+                .map((ingredient) => `<li>${ingredient}</li>`)
+                .join('')}
             </ul>
-            
-            <h2>${recipe.detectedLanguage === 'fr' ? 'Étapes de préparation' : 'Preparation Steps'}</h2>
+
+            <h2>${
+              recipe.detectedLanguage === 'fr'
+                ? 'Étapes de préparation'
+                : 'Preparation Steps'
+            }</h2>
             <ol>
-              ${recipe.steps.map(step => `<li>${step}</li>`).join('')}
+              ${recipe.steps.map((step) => `<li>${step}</li>`).join('')}
             </ol>
-            
+
             <div class="date">
-              ${recipe.detectedLanguage === 'fr' ? 'Recette ajoutée le' : 'Recipe added on'} ${new Date(recipe.createdAt).toLocaleDateString('fr-FR')}
+              ${
+                recipe.detectedLanguage === 'fr'
+                  ? 'Recette ajoutée le'
+                  : 'Recipe added on'
+              } ${new Date(recipe.createdAt).toLocaleDateString('fr-FR')}
             </div>
           </body>
         </html>
       `;
 
-      const { uri } = await Print.printToFileAsync({ 
+      const { uri } = await Print.printToFileAsync({
         html,
-        base64: false
+        base64: false,
       });
 
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, {
           mimeType: 'application/pdf',
-          dialogTitle: 'Partager la recette PDF'
+          dialogTitle: 'Partager la recette PDF',
         });
       } else {
         Alert.alert('Succès', 'PDF généré et sauvegardé dans vos fichiers');
       }
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de générer le PDF');
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleTranslate = () => {
-    if (!recipe) return;
-    
-    // navigation.navigate('TranslationPreview', {
-    //   recipe: {
-    //     title: recipe.title,
-    //     ingredients: recipe.ingredients,
-    //     steps: recipe.steps,
-    //     detectedLanguage: recipe.detectedLanguage
-    //   }
-    // });
-  };
-
-  const handleDelete = () => {
-    Alert.alert(
-      'Supprimer la recette',
-      'Êtes-vous sûr de vouloir supprimer cette recette? Cette action est irréversible.',
-      [
-        { 
-          text: 'Annuler', 
-          style: 'cancel' 
-        },
-        { 
-          text: 'Supprimer', 
-          style: 'destructive', 
-          onPress: confirmDelete 
-        }
-      ]
-    );
-  };
-
-  const confirmDelete = async () => {
-    if (!recipe) return;
-    
-    try {
-      await deleteRecipe(recipe.id);
-      Alert.alert(
-        'Supprimé', 
-        'La recette a été supprimée avec succès',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.goBack()
-          }
-        ]
-      );
-    } catch (error) {
-      Alert.alert('Erreur', 'Impossible de supprimer la recette');
     }
   };
 
   const shareRecipe = async () => {
     if (!recipe) return;
-    
+
     const content = `
 📝 ${recipe.title}
-${recipe.detectedLanguage === 'en' ? '🇺🇸 English Recipe' : '🇫🇷 Recette Française'}
+${
+  recipe.detectedLanguage === 'en'
+    ? '🇺🇸 English Recipe'
+    : '🇫🇷 Recette Française'
+}
 
 ${recipe.detectedLanguage === 'fr' ? 'Ingrédients:' : 'Ingredients:'}
-${recipe.ingredients.map(ingredient => `• ${ingredient}`).join('\n')}
+${recipe.ingredients.map((ingredient) => `• ${ingredient}`).join('\n')}
 
 ${recipe.detectedLanguage === 'fr' ? 'Étapes:' : 'Steps:'}
 ${recipe.steps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
@@ -228,73 +253,144 @@ ${recipe.steps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
     try {
       await Share.share({
         message: content,
-        title: recipe.title
+        title: recipe.title,
       });
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de partager la recette');
     }
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      'Supprimer la recette',
+      'Êtes-vous sûr de vouloir supprimer cette recette? Cette action est irréversible.',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: confirmDelete,
+        },
+      ]
+    );
+  };
+
+  const confirmDelete = async () => {
+    if (!recipe) return;
+
+    try {
+      await deleteRecipe(recipe.id);
+      Alert.alert('Supprimé', 'La recette a été supprimée avec succès', [
+        {
+          text: 'OK',
+          onPress: () => navigation.goBack(),
+        },
+      ]);
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de supprimer la recette');
+    }
+  };
+
+  const getLanguageFlag = () => {
+    if (!recipe) return '🇫🇷';
+    return recipe.detectedLanguage === 'fr' ? '🇫🇷' : '🇺🇸';
+  };
+
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  const handleExport = () => {
+    Alert.alert('Export Options', "Choisissez le format d'export", [
+      {
+        text: 'PDF',
+        onPress: exportToPDF,
+      },
+      {
+        text: 'Partager',
+        onPress: shareRecipe,
+      },
+      {
+        text: 'Annuler',
+        style: 'cancel',
+      },
+    ]);
+  };
+
   if (loading) {
     return (
-      <View style={commonStyles.loading}>
-        <Text style={commonStyles.loadingText}>Chargement de la recette...</Text>
+      <View style={styles.loading}>
+        <Text style={styles.loadingText}>Chargement de la recette...</Text>
       </View>
     );
   }
 
   if (!recipe) {
     return (
-      <View style={commonStyles.loading}>
+      <View style={styles.loading}>
         <Text style={styles.errorText}>Recette introuvable</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={commonStyles.container} showsVerticalScrollIndicator={false}>
-      {/* Header with language indicator */}
-      <View style={styles.header}>
-        <Text style={styles.languageIndicator}>
-          {recipe.detectedLanguage === 'en' ? '🇺🇸 English' : '🇫🇷 Français'}
-          {!recipe.isOriginal && ' (Traduite)'}
-        </Text>
-        <Text style={styles.title}>{recipe.title}</Text>
-        <Text style={styles.dateText}>
-          Ajouté le {new Date(recipe.createdAt).toLocaleDateString('fr-FR')}
-        </Text>
-        {/* {!recipe.isOriginal && (
-          <TouchableOpacity 
-            style={styles.viewOriginalButton}
-            onPress={() => navigation.push('RecipeDetail', { recipeId: recipe.originalRecipeId! })}
+    <ScrollView
+      style={styles.scrollView}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Title Section */}
+      <View style={styles.titleSection}>
+        {/* Metadata */}
+        <View style={styles.metadata}>
+          <Text style={styles.metadataText}>{getLanguageFlag()}</Text>
+          <Text style={styles.metadataText}>•</Text>
+          <Text style={styles.metadataText}>
+            {recipe.detectedLanguage === 'fr' ? 'Français' : 'English'}
+          </Text>
+          {!recipe.isOriginal && (
+            <>
+              <Text style={styles.metadataText}>•</Text>
+              <Text style={styles.metadataText}>Traduit</Text>
+            </>
+          )}
+        </View>
+      </View>
+
+      {/* Ingredients Section */}
+      <Section title="Ingrédients" count={recipe.ingredients.length}>
+        {recipe.ingredients.map((ingredient, index) => (
+          <CheckboxItem
+            key={index}
+            checked={checkedIngredients[index] || false}
+            onChange={() => toggleIngredient(index)}
+            isLast={index === recipe.ingredients.length - 1}
           >
-            <Text style={styles.viewOriginalText}>📖 Voir l'original</Text>
-          </TouchableOpacity>
-        )} */}
-      </View>
+            {ingredient}
+          </CheckboxItem>
+        ))}
+      </Section>
 
-      {/* Recipe Content */}
-      <View style={styles.content}>
-        <Text style={styles.sectionTitle}>
-          {recipe.detectedLanguage === 'fr' ? 'Ingrédients' : 'Ingredients'}
-        </Text>
-        <View style={styles.ingredientsList}>
-          {recipe.ingredients.map((ingredient, index) => (
-            <Text key={index} style={styles.ingredientText}>• {ingredient}</Text>
-          ))}
-        </View>
+      {/* Steps Section */}
+      <Section title="Étapes de préparation" count={recipe.steps.length}>
+        {recipe.steps.map((step, index) => (
+          <CheckboxItem
+            key={index}
+            number={index + 1}
+            checked={checkedSteps[index] || false}
+            onChange={() => toggleStep(index)}
+            isLast={index === recipe.steps.length - 1}
+          >
+            {step}
+          </CheckboxItem>
+        ))}
+      </Section>
 
-        <Text style={styles.sectionTitle}>
-          {recipe.detectedLanguage === 'fr' ? 'Étapes de préparation' : 'Preparation Steps'}
-        </Text>
-        <View style={styles.stepsList}>
-          {recipe.steps.map((step, index) => (
-            <Text key={index} style={styles.stepText}>{index + 1}. {step}</Text>
-          ))}
-        </View>
-      </View>
-
-      {/* Translation Family */}
+      {/* Recipe Family (Translations) */}
       {recipeFamily.length > 1 && (
         <View style={styles.familySection}>
           <Text style={styles.familyTitle}>📚 Autres langues disponibles</Text>
@@ -304,12 +400,18 @@ ${recipe.steps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
                 key={familyRecipe.id}
                 style={[
                   styles.languageCard,
-                  familyRecipe.id === recipe.id && styles.currentLanguageCard
+                  familyRecipe.id === recipe.id && styles.currentLanguageCard,
                 ]}
-                // onPress={() => navigation.replace('RecipeDetail', { recipeId: familyRecipe.id })}
+                onPress={() => {
+                  if (familyRecipe.id !== recipe.id) {
+                    router.replace(`/recipe/${familyRecipe.id}` as any);
+                  }
+                }}
               >
                 <Text style={styles.languageCardText}>
-                  {familyRecipe.detectedLanguage === 'en' ? '🇺🇸 English' : '🇫🇷 Français'}
+                  {familyRecipe.detectedLanguage === 'en'
+                    ? '🇺🇸 English'
+                    : '🇫🇷 Français'}
                 </Text>
                 {familyRecipe.isOriginal && (
                   <Text style={styles.originalBadge}>Original</Text>
@@ -322,175 +424,139 @@ ${recipe.steps.map((step, index) => `${index + 1}. ${step}`).join('\n')}
 
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
-        <TouchableOpacity 
-          style={[commonStyles.button, commonStyles.primaryButton, isExporting && styles.disabledButton]}
-          onPress={exportToPDF}
-          disabled={isExporting}
-        >
-          <Text style={commonStyles.buttonText}>
-            {isExporting ? '⏳ Génération...' : '🖨️ Exporter PDF'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[commonStyles.button, commonStyles.secondaryButton]}
-          onPress={shareRecipe}
-        >
-          <Text style={commonStyles.buttonText}>📤 Partager</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[commonStyles.button, styles.translateButton]}
-          onPress={handleTranslate}
-        >
-          <Text style={commonStyles.buttonText}>
-            🌍 Traduire vers {recipe.detectedLanguage === 'en' ? 'Français' : 'English'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[commonStyles.button, commonStyles.dangerButton]}
+        <TouchableOpacity
+          style={styles.deleteButton}
           onPress={handleDelete}
+          activeOpacity={0.7}
         >
-          <Text style={commonStyles.buttonText}>🗑️ Supprimer</Text>
+          <Text style={styles.deleteButtonText}>
+            🗑️ Supprimer cette recette
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
 
+// ===========================
+// 🎨 STYLES
+// ===========================
+
 const styles = StyleSheet.create({
-  header: {
-    padding: theme.spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderLight,
-    backgroundColor: theme.colors.gray50,
+  container: {
+    flex: 1,
+    backgroundColor: iOS.colors.systemBackground,
   },
-  
-  languageIndicator: {
-    ...theme.typography.body,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.sm,
+
+  // ScrollView
+  scrollView: {
+    flex: 1,
   },
-  
-  title: {
-    ...theme.typography.title,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.sm,
+  scrollContent: {
+    paddingBottom: 34,
   },
-  
-  dateText: {
-    ...theme.typography.captionSmall,
-    color: theme.colors.textSecondary,
-    fontStyle: 'italic',
+
+  // Title Section
+  titleSection: {
+    padding: iOS.spacing.standard * 2,
   },
-  
-  viewOriginalButton: {
-    marginTop: theme.spacing.md,
-    alignSelf: 'flex-start',
+  metadata: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  
-  viewOriginalText: {
-    ...theme.typography.body,
-    color: theme.colors.primary,
-    textDecorationLine: 'underline',
+  metadataText: {
+    ...iOS.typography.subheadline,
+    color: iOS.colors.secondaryLabel,
   },
-  
-  content: {
-    padding: theme.spacing.lg,
+
+  // Section
+  section: {
+    marginTop: iOS.spacing.standard,
   },
-  
-  sectionTitle: {
-    ...theme.typography.subtitle,
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
-    borderLeftWidth: 4,
-    borderLeftColor: theme.colors.primary,
-    paddingLeft: theme.spacing.md,
+  sectionHeader: {
+    paddingTop: 20,
+    paddingBottom: 8,
+    paddingHorizontal: iOS.spacing.standard,
   },
-  
-  ingredientsList: {
-    marginBottom: theme.spacing.xl,
+  sectionHeaderText: {
+    ...iOS.typography.headline,
+    color: iOS.colors.label,
   },
-  
-  ingredientText: {
-    ...theme.typography.body,
-    color: theme.colors.text,
-    lineHeight: 26,
-    marginBottom: theme.spacing.sm,
-  },
-  
-  stepsList: {
-    marginBottom: theme.spacing.lg,
-  },
-  
-  stepText: {
-    ...theme.typography.body,
-    color: theme.colors.text,
-    lineHeight: 26,
-    marginBottom: theme.spacing.md,
-  },
-  
+
+  // Recipe Family
   familySection: {
-    padding: theme.spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.borderLight,
-    backgroundColor: theme.colors.gray50,
+    paddingHorizontal: iOS.spacing.standard,
+    paddingVertical: iOS.spacing.standard * 2,
+    borderTopWidth: 0.5,
+    borderTopColor: iOS.colors.separator,
+    backgroundColor: iOS.colors.secondarySystemBackground,
   },
-  
   familyTitle: {
-    ...theme.typography.body,
-    fontWeight: 'bold',
-    color: theme.colors.text,
-    marginBottom: theme.spacing.md,
+    ...iOS.typography.headline,
+    color: iOS.colors.label,
+    marginBottom: iOS.spacing.standard,
   },
-  
   languageCard: {
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.borderRadius.md,
-    padding: theme.spacing.md,
-    marginRight: theme.spacing.md,
+    backgroundColor: iOS.colors.systemBackground,
+    borderRadius: 10,
+    padding: iOS.spacing.standard,
+    marginRight: iOS.spacing.standard,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: iOS.colors.separator,
     minWidth: 120,
     alignItems: 'center',
   },
-  
   currentLanguageCard: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.blue50,
+    borderColor: iOS.colors.tint,
+    backgroundColor: iOS.colors.systemBackground,
+    borderWidth: 2,
   },
-  
   languageCardText: {
-    ...theme.typography.body,
+    ...iOS.typography.body,
     fontWeight: '600',
-    color: theme.colors.text,
+    color: iOS.colors.label,
     textAlign: 'center',
   },
-  
   originalBadge: {
-    ...theme.typography.captionSmall,
-    color: theme.colors.success,
-    fontWeight: 'bold',
-    marginTop: theme.spacing.xs,
+    ...iOS.typography.footnote,
+    color: iOS.colors.systemGreen,
+    fontWeight: '700',
+    marginTop: iOS.spacing.compact / 2,
   },
-  
+
+  // Action Buttons
   actionButtons: {
-    padding: theme.spacing.lg,
-    gap: theme.spacing.md,
-    paddingBottom: theme.spacing.xxl,
+    padding: iOS.spacing.standard,
+    gap: iOS.spacing.standard,
+    paddingBottom: iOS.spacing.standard * 2,
   },
-  
-  translateButton: {
-    backgroundColor: theme.colors.warning,
+  deleteButton: {
+    backgroundColor: iOS.colors.systemBackground,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: iOS.spacing.standard,
+    alignItems: 'center',
+    minHeight: 50,
   },
-  
-  disabledButton: {
-    opacity: 0.6,
+  deleteButtonText: {
+    ...iOS.typography.body,
+    color: iOS.colors.systemRed,
   },
-  
+
+  // Loading & Error
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: iOS.colors.systemBackground,
+  },
+  loadingText: {
+    ...iOS.typography.headline,
+    color: iOS.colors.tint,
+  },
   errorText: {
-    ...theme.typography.subtitle,
-    color: theme.colors.danger,
+    ...iOS.typography.headline,
+    color: iOS.colors.systemRed,
   },
 });

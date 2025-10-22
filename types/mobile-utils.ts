@@ -1,8 +1,9 @@
-import { TranslationPreviewData } from "./Recipe";
+import { CONVERSIONS } from "@/utils";
 
-export type RootStackParamList = {
-  Home: undefined;
-  AddRecipe: undefined;
-  RecipeDetail: { recipeId: string };
-  TranslationPreview: { recipe: TranslationPreviewData };
-};
+export interface ConvertedItem {
+  converted: string;
+  original?: string;
+}
+
+export type ConversionCategory = keyof typeof CONVERSIONS;
+export type ConversionData = typeof CONVERSIONS[ConversionCategory];

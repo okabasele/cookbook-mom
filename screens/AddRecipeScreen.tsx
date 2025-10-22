@@ -1,45 +1,42 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   Alert,
   ScrollView,
 } from 'react-native';
-import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import iOS from '../styles/ios';
 import { URLInputStage } from './stages/URLInputStage';
 import { AnalyzingStage } from './stages/AnalyzingStage';
 import { EditRecipeStage } from './stages/EditRecipeStage';
-import { LanguagePickerModal } from '../components/LanguagePickerModal';
-import { DifficultyPickerModal } from '../components/DifficultyPickerModal';
 import { mockYouTubeExtraction } from '../utils/conversions';
+import PickerModal from '@/components/ui/PickerModal';
+import { ConvertedItem } from '@/types/mobile-utils';
+import { NavButton } from '@/components/ui/NavButton';
 
 const LANGUAGES = [
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+  { value: 'fr', label: 'Français', icon: '🇫🇷' },
+  { value: 'en', label: 'English', icon: '🇺🇸' },
+  { value: 'es', label: 'Español', icon: '🇪🇸' },
+  { value: 'de', label: 'Deutsch', icon: '🇩🇪' },
+  { value: 'it', label: 'Italiano', icon: '🇮🇹' },
+];
+
+const DIFFICULTY_OPTIONS = [
+  { value: 'easy', label: 'Facile', icon: '🟢' },
+  { value: 'medium', label: 'Moyen', icon: '🟡' },
+  { value: 'hard', label: 'Difficile', icon: '🔴' },
 ];
 
 type Stage = 'input' | 'analyzing' | 'edit';
-
-interface ConvertedItem {
-  converted: string;
-  original: string;
-}
 
 export function AddRecipeScreen() {
   const router = useRouter();
 
   // Stage management
   const [stage, setStage] = useState<Stage>('input');
-  const [analysisStep, setAnalysisStep] = useState(0);
+  const [analysisStep, setAnalysisStep] = useState(0); // 0: Extract, 1: Translate, 2: Convert
 
   // Form data
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -52,17 +49,26 @@ export function AddRecipeScreen() {
   const [steps, setSteps] = useState<ConvertedItem[]>([]);
   const [prepTime, setPrepTime] = useState(15);
   const [cookTime, setCookTime] = useState(15);
-  const [difficulty, setDifficulty] = useState('facile');
+  const [difficulty, setDifficulty] = useState('easy');
   const [showDifficultyPicker, setShowDifficultyPicker] = useState(false);
 
-  const selectedLanguage = LANGUAGES.find((l) => l.code === targetLang);
+  const selectedLanguage =
+    LANGUAGES.find((l) => l.value === targetLang) || LANGUAGES[0];
   const navigation = useNavigation();
 
   React.useEffect(() => {
     navigation.setOptions({
       title: stage === 'input' ? 'YouTube' : 'Nouvelle recette',
+      headerRight: () => (
+        <NavButton
+          onPress={handleSave}
+          label="Sauvegarder"
+          disabled={!canSave}
+        />
+      ),
+      headerLeft: () => <NavButton onPress={handleCancel} label="Annuler" disabled={stage === 'input'} />,
     });
-  }, [navigation,stage]);
+  }, [navigation, stage]);
   const handleAnalyze = async () => {
     setUrlError('');
 
@@ -138,7 +144,7 @@ export function AddRecipeScreen() {
       [
         {
           text: 'OK',
-          onPress: () => router.back(),
+          onPress: () => router.push('/index'),
         },
       ]
     );
@@ -180,7 +186,7 @@ export function AddRecipeScreen() {
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'OK',
-          onPress: (text) => {
+          onPress: (text?: string) => {
             const time = parseInt(text || '0');
             if (!isNaN(time) && time > 0) {
               setPrepTime(time);
@@ -201,7 +207,7 @@ export function AddRecipeScreen() {
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'OK',
-          onPress: (text) => {
+          onPress: (text?: string) => {
             const time = parseInt(text || '0');
             if (!isNaN(time) && time > 0) {
               setCookTime(time);
@@ -214,14 +220,11 @@ export function AddRecipeScreen() {
     );
   };
 
-  const canSave = title.trim() && ingredients.length > 0 && steps.length > 0;
+  const canSave =
+    title.trim().length > 0 && ingredients.length > 0 && steps.length > 0;
 
   return (
-    
-    <ScrollView
-      style={styles.container}
-    >
-
+    <ScrollView style={styles.container}>
       {/* Content */}
       <View style={styles.content}>
         {stage === 'input' && (
@@ -238,7 +241,7 @@ export function AddRecipeScreen() {
         {stage === 'analyzing' && (
           <AnalyzingStage
             analysisStep={analysisStep}
-            selectedLanguageName={selectedLanguage?.name || 'Français'}
+            selectedLanguageName={selectedLanguage.label}
           />
         )}
 
@@ -260,25 +263,29 @@ export function AddRecipeScreen() {
             onCookTimePress={handleCookTimePress}
             difficulty={difficulty}
             onDifficultyPress={() => setShowDifficultyPicker(true)}
-            selectedLanguageFlag={selectedLanguage?.flag || '🇫🇷'}
-            selectedLanguageName={selectedLanguage?.name || 'Français'}
+            selectedLanguageFlag={selectedLanguage.icon}
+            selectedLanguageName={selectedLanguage.label}
           />
         )}
       </View>
 
       {/* Modals */}
-      <LanguagePickerModal
+      <PickerModal
         visible={showLangPicker}
+        options={LANGUAGES}
         value={targetLang}
+        title="Traduire en"
         onChange={setTargetLang}
         onClose={() => setShowLangPicker(false)}
       />
-
-      <DifficultyPickerModal
+      <PickerModal
         visible={showDifficultyPicker}
         value={difficulty}
         onChange={setDifficulty}
         onClose={() => setShowDifficultyPicker(false)}
+        options={DIFFICULTY_OPTIONS}
+        title="Difficulté"
+        showValidateButton={true}
       />
     </ScrollView>
   );
@@ -289,7 +296,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: iOS.colors.groupedBackground,
   },
-
+  content: {
+    flex: 1,
+  },
   navContent: {
     height: iOS.spacing.navBar,
     flexDirection: 'row',
@@ -298,25 +307,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: iOS.spacing.standard,
   },
 
-  navButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    padding: iOS.spacing.compact,
-  },
+  // navButton: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  //   gap: 4,
+  //   padding: iOS.spacing.compact,
+  // },
 
-  navButtonText: {
-    ...iOS.typography.body,
-    color: iOS.colors.tint,
-  },
+  // navButtonText: {
+  //   ...iOS.typography.body,
+  //   color: iOS.colors.tint,
+  // },
 
-  navButtonBold: {
-    fontWeight: '600',
-  },
+  // navButtonBold: {
+  //   fontWeight: '600',
+  // },
 
-  navButtonDisabled: {
-    color: iOS.colors.tertiaryLabel,
-  },
+  // navButtonDisabled: {
+  //   color: iOS.colors.tertiaryLabel,
+  // },
 
   navSpacer: {
     width: 60,
@@ -325,9 +334,5 @@ const styles = StyleSheet.create({
   navTitle: {
     ...iOS.typography.headline,
     color: iOS.colors.label,
-  },
-
-  content: {
-    flex: 1,
   },
 });
