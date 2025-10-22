@@ -15,6 +15,7 @@ import { SearchBarProps } from 'react-native-screens';
 import RecipeList from '@/components/home/RecipeList';
 import { NavButton } from '@/components/ui/NavButton';
 import { Plus } from 'lucide-react-native';
+import { seedRecipes } from '@/seed/recipe';
 
 export function HomeScreen() {
   const router = useRouter();
@@ -40,6 +41,7 @@ export function HomeScreen() {
       ),
     });
   }, [navigation]);
+  
   const loadRecipes = async () => {
     try {
       setLoading(true);
@@ -59,14 +61,10 @@ export function HomeScreen() {
   );
 
   // Filter recipes
-  const recipeFamilies = recipes.filter((r) => r.isOriginal);
-  const filteredRecipes = useMemo(
-    () =>
-      recipeFamilies.filter((r) =>
-        r.title.toLowerCase().includes(searchQuery.toLowerCase())
-      ),
-    [recipeFamilies, searchQuery]
-  );
+const filteredRecipes = useMemo(
+  () => recipes.filter(r => r.title.toLowerCase().includes(searchQuery.toLowerCase())),
+  [recipes, searchQuery]
+);
 
   const handleDeleteRecipe = async (recipeId: string) => {
     Alert.alert(

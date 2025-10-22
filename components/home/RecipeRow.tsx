@@ -9,6 +9,7 @@ import {
   useAnimatedStyle,
   SharedValue,
 } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import ActionButton from '../ui/ActionButton';
 
 interface RecipeRowProps {
@@ -21,6 +22,16 @@ interface RecipeRowProps {
 const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete, showDivider }) => {
   const emoji = useMemo(() => getRecipeEmoji(recipe.title), [recipe.title]);
 
+// Dans RecipeRow.tsx
+const handlePress = () => {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  onPress();
+};
+
+const handleDelete = () => {
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+  onDelete();
+};
   const renderRightActions = (
     progress: SharedValue<number>,
     drag: SharedValue<number>
@@ -38,7 +49,7 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete, showDi
         <ActionButton
           type="delete"
           animatedStyle={deleteAnimatedStyle}
-          onPress={onDelete}
+          onPress={handleDelete}
           actionText="Effacer"
         />
       </View>
@@ -53,7 +64,7 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete, showDi
       rightThreshold={40}
     >
       <TouchableOpacity
-        onPress={onPress}
+        onPress={handlePress}
         activeOpacity={0.98}
       >
         <View style={showDivider ? styles.rowWithDivider : styles.row}>
@@ -92,6 +103,11 @@ const RecipeRow: React.FC<RecipeRowProps> = ({ recipe, onPress, onDelete, showDi
     </Swipeable>
   );
 };
+
+export default React.memo(RecipeRow, (prevProps, nextProps) => {
+  return prevProps.recipe.id === nextProps.recipe.id &&
+         prevProps.recipe.title === nextProps.recipe.title;
+});
 
 const styles = StyleSheet.create({
   row: {
@@ -167,5 +183,3 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 });
-
-export default RecipeRow;
