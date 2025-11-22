@@ -14,6 +14,8 @@ import { mockYouTubeExtraction } from '../utils/conversions';
 import PickerModal from '@/components/ui/PickerModal';
 import { ConvertedItem } from '@/types/mobile-utils';
 import { NavButton } from '@/components/ui/NavButton';
+import { saveRecipe } from '@/utils/storage';
+import { Recipe } from '@/types/Recipe';
 
 const LANGUAGES = [
   { value: 'fr', label: 'Français', icon: '🇫🇷' },
@@ -137,6 +139,17 @@ export function AddRecipeScreen() {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs requis');
       return;
     }
+    const recipe: Recipe = {
+      title,
+      ingredients: ingredients.map((ing) => ing.converted),
+      steps: steps.map((step) => step.converted),
+      id: Date.now().toString(),
+      detectedLanguage: 'fr',
+      createdAt: new Date().toISOString(),
+      isOriginal: false,
+      translationIds: [],
+      }
+saveRecipe(recipe)
 
     Alert.alert(
       '✅ Recette sauvegardée',
@@ -144,7 +157,17 @@ export function AddRecipeScreen() {
       [
         {
           text: 'OK',
-          onPress: () => router.push('/index'),
+          onPress: () => {
+            setAnalysisStep(0);
+            setStage('input');
+            setYoutubeUrl('');
+            setTitle('');
+            setIngredients([]);
+            setSteps([]);
+            setPrepTime(0);
+            setCookTime(0);
+            setDifficulty('easy');
+            router.replace(`recipe-detail/${recipe.id}`)},
         },
       ]
     );
