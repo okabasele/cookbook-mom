@@ -28,8 +28,12 @@ const RecipeList = ({
   handleDeleteRecipe,
   toRecipeDetail,
 }: RecipeListProps) => {
+    const sortedRecipes = [...recipes].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
   const filteredRecipe = customObjectGroupBy<Recipe, string>(
-    recipes,
+    sortedRecipes,
     (recipe) => {
       const createdAt = new Date(recipe.createdAt);
       const now = new Date();
