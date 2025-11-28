@@ -90,8 +90,8 @@ export const mockYouTubeExtraction = async (
 ): Promise<{
   title: string;
   language: string;
-  ingredients: { converted: string; original: string }[];
-  steps: { converted: string; original: string }[];
+  ingredients: string[];
+  steps: string[];
   prepTime: number;
   cookTime: number;
   difficulty: string;
@@ -110,42 +110,42 @@ export const mockYouTubeExtraction = async (
     title: targetLang === 'fr' ? "Cookies aux Pépites de Chocolat" : "Chocolate Chip Cookies",
     language: targetLang,
     ingredients: targetLang === 'fr' ? [
-      { converted: "240g de farine tout usage", original: "2 cups all-purpose flour" },
-      { converted: "225g de beurre ramolli", original: "1 cup butter, softened" },
-      { converted: "150g de sucre blanc", original: "3/4 cup granulated sugar" },
-      { converted: "165g de cassonade", original: "3/4 cup brown sugar" },
-      { converted: "2 gros œufs", original: "2 large eggs" },
-      { converted: "10ml d'extrait de vanille", original: "2 tsp vanilla extract" },
-      { converted: "5ml de bicarbonate de soude", original: "1 tsp baking soda" },
-      { converted: "350g de pépites de chocolat", original: "2 cups chocolate chips" }
+      "240g de farine tout usage",
+      "225g de beurre ramolli",
+      "150g de sucre blanc",
+      "165g de cassonade",
+      "2 gros œufs",
+      "10ml d'extrait de vanille",
+      "5ml de bicarbonate de soude",
+      "350g de pépites de chocolat"
     ] : [
-      { converted: "2 cups all-purpose flour", original: "2 cups all-purpose flour" },
-      { converted: "1 cup butter, softened", original: "1 cup butter, softened" },
-      { converted: "3/4 cup granulated sugar", original: "3/4 cup granulated sugar" },
-      { converted: "3/4 cup brown sugar", original: "3/4 cup brown sugar" },
-      { converted: "2 large eggs", original: "2 large eggs" },
-      { converted: "2 tsp vanilla extract", original: "2 tsp vanilla extract" },
-      { converted: "1 tsp baking soda", original: "1 tsp baking soda" },
-      { converted: "2 cups chocolate chips", original: "2 cups chocolate chips" }
+      "2 cups all-purpose flour",
+      "1 cup butter, softened",
+      "3/4 cup granulated sugar",
+      "3/4 cup brown sugar",
+      "2 large eggs",
+      "2 tsp vanilla extract",
+      "1 tsp baking soda",
+      "2 cups chocolate chips"
     ],
     steps: targetLang === 'fr' ? [
-      { converted: "Préchauffer le four à 190°C", original: "Preheat oven to 375°F" },
-      { converted: "Mélanger le beurre et les sucres jusqu'à obtenir une texture crémeuse", original: "Mix butter and sugars until creamy" },
-      { converted: "Incorporer les œufs et la vanille en battant", original: "Beat in eggs and vanilla" },
-      { converted: "Mélanger la farine et le bicarbonate de soude", original: "Combine flour and baking soda" },
-      { converted: "Incorporer progressivement les ingrédients secs", original: "Gradually blend dry ingredients" },
-      { converted: "Ajouter les pépites de chocolat en remuant", original: "Stir in chocolate chips" },
-      { converted: "Déposer des cuillères bombées sur des plaques", original: "Drop rounded tablespoons onto sheets" },
-      { converted: "Cuire 9-11 minutes jusqu'à dorure", original: "Bake 9-11 minutes until golden" }
+      "Préchauffer le four à 190°C",
+      "Mélanger le beurre et les sucres jusqu'à obtenir une texture crémeuse",
+      "Incorporer les œufs et la vanille en battant",
+      "Mélanger la farine et le bicarbonate de soude",
+      "Incorporer progressivement les ingrédients secs",
+      "Ajouter les pépites de chocolat en remuant",
+      "Déposer des cuillères bombées sur des plaques",
+      "Cuire 9-11 minutes jusqu'à dorure"
     ] : [
-      { converted: "Preheat oven to 375°F", original: "Preheat oven to 375°F" },
-      { converted: "Mix butter and sugars until creamy", original: "Mix butter and sugars until creamy" },
-      { converted: "Beat in eggs and vanilla", original: "Beat in eggs and vanilla" },
-      { converted: "Combine flour and baking soda", original: "Combine flour and baking soda" },
-      { converted: "Gradually blend dry ingredients", original: "Gradually blend dry ingredients" },
-      { converted: "Stir in chocolate chips", original: "Stir in chocolate chips" },
-      { converted: "Drop rounded tablespoons onto sheets", original: "Drop rounded tablespoons onto sheets" },
-      { converted: "Bake 9-11 minutes until golden", original: "Bake 9-11 minutes until golden" }
+      "Preheat oven to 375°F",
+      "Mix butter and sugars until creamy",
+      "Beat in eggs and vanilla",
+      "Combine flour and baking soda",
+      "Gradually blend dry ingredients",
+      "Stir in chocolate chips",
+      "Drop rounded tablespoons onto sheets",
+      "Bake 9-11 minutes until golden"
     ],
     prepTime: 15,
     cookTime: 11,

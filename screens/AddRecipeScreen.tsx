@@ -12,7 +12,6 @@ import { AnalyzingStage } from './stages/AnalyzingStage';
 import { EditRecipeStage } from './stages/EditRecipeStage';
 import { mockYouTubeExtraction } from '../utils/conversions';
 import PickerModal from '@/components/ui/PickerModal';
-import { ConvertedItem } from '@/types/mobile-utils';
 import { NavButton } from '@/components/ui/NavButton';
 import { saveRecipe } from '@/utils/storage';
 import { Recipe } from '@/types/Recipe';
@@ -47,8 +46,8 @@ export function AddRecipeScreen() {
   const [showLangPicker, setShowLangPicker] = useState(false);
 
   const [title, setTitle] = useState('');
-  const [ingredients, setIngredients] = useState<ConvertedItem[]>([]);
-  const [steps, setSteps] = useState<ConvertedItem[]>([]);
+  const [ingredients, setIngredients] = useState<string[]>([]);
+  const [steps, setSteps] = useState<string[]>([]);
   const [prepTime, setPrepTime] = useState(15);
   const [cookTime, setCookTime] = useState(15);
   const [difficulty, setDifficulty] = useState('easy');
@@ -141,13 +140,12 @@ export function AddRecipeScreen() {
     }
     const recipe: Recipe = {
       title,
-      ingredients: ingredients.map((ing) => ing.converted),
-      steps: steps.map((step) => step.converted),
+      ingredients: ingredients,
+      steps: steps,
       id: Date.now().toString(),
       detectedLanguage: 'fr',
       createdAt: new Date().toISOString(),
-      isOriginal: false,
-      translationIds: [],
+      sourceUrl: youtubeUrl,
       }
     saveRecipe(recipe)
     Alert.alert(
@@ -174,10 +172,10 @@ export function AddRecipeScreen() {
   };
 
   const handleAddIngredient = () => {
-    setIngredients([...ingredients, { converted: '', original: '' }]);
+    setIngredients([...ingredients, '']);
   };
 
-  const handleUpdateIngredient = (index: number, ingredient: ConvertedItem) => {
+  const handleUpdateIngredient = (index: number, ingredient: string) => {
     const newIngredients = [...ingredients];
     newIngredients[index] = ingredient;
     setIngredients(newIngredients);
@@ -188,10 +186,10 @@ export function AddRecipeScreen() {
   };
 
   const handleAddStep = () => {
-    setSteps([...steps, { converted: '', original: '' }]);
+    setSteps([...steps, '']);
   };
 
-  const handleUpdateStep = (index: number, step: ConvertedItem) => {
+  const handleUpdateStep = (index: number, step: string) => {
     const newSteps = [...steps];
     newSteps[index] = step;
     setSteps(newSteps);

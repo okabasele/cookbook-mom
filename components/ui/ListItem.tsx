@@ -2,38 +2,32 @@ import React from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { X } from 'lucide-react-native';
 import iOS from '@/styles/ios';
-import { ConvertedItem } from '@/types/mobile-utils';
 
-interface ListItemProps<T extends ConvertedItem> {
-  item: T;
+interface ListItemProps {
+  item: string;
   number?: number; // Optional for numbered items like steps
-  onUpdate: (item: T) => void;
+  onUpdate: (item: string) => void;
   onDelete: () => void;
 }
 
-export function ListItem<T extends ConvertedItem>({
+export function ListItem({
   item,
   number,
   onUpdate,
   onDelete,
-}: ListItemProps<T>) {
+}: ListItemProps) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         {number !== undefined && <Text style={styles.number}>{number}.</Text>}
         <View style={styles.inputContainer}>
           <TextInput
-            value={item.converted}
-            onChangeText={(text) => onUpdate({ ...item, converted: text })}
+            value={item}
+            onChangeText={onUpdate}
             style={styles.input}
             placeholderTextColor={iOS.colors.tertiaryLabel}
             multiline={number !== undefined} // Multiline for steps
           />
-          {item.original!== undefined || item.original !== item.converted && (
-            <Text style={styles.originalText}>
-              ({item.original})
-            </Text>
-          )}
         </View>
         <TouchableOpacity
           onPress={onDelete}

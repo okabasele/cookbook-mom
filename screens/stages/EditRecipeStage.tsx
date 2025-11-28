@@ -12,18 +12,17 @@ import iOS from '../../styles/ios';
 import Section from '@/components/ui/Section';
 import InfoRow from '@/components/ui/InfoRow';
 import ConvertedList from '@/components/ui/ConvertedList';
-import { ConvertedItem } from '@/types/mobile-utils';
 import InfoBadge from '@/components/ui/InfoBadge';
 
 interface EditRecipeStageProps {
   title: string;
   onTitleChange: (title: string) => void;
-  ingredients: ConvertedItem[];
-  onUpdateIngredient: (index: number, ingredient: ConvertedItem) => void;
+  ingredients: string[];
+  onUpdateIngredient: (index: number, ingredient: string) => void;
   onDeleteIngredient: (index: number) => void;
   onAddIngredient: () => void;
-  steps: ConvertedItem[];
-  onUpdateStep: (index: number, step: ConvertedItem) => void;
+  steps: string[];
+  onUpdateStep: (index: number, step: string) => void;
   onDeleteStep: (index: number) => void;
   onAddStep: () => void;
   prepTime: number;

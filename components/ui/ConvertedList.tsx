@@ -3,14 +3,13 @@ import { View, StyleSheet, TouchableOpacity, Text } from 'react-native'
 import Section from './Section'
 import { ListItem } from './ListItem'
 import iOS from '@/styles/ios'
-import { ConvertedItem } from '@/types/mobile-utils'
 import { Plus } from 'lucide-react-native'
 
 type ConvertedListProps = {
   title: string;
   buttonTitle: string;
-  items: ConvertedItem[];
-  onUpdateItem: (index: number, item: ConvertedItem) => void;
+  items: string[];
+  onUpdateItem: (index: number, item: string) => void;
   onDeleteItem: (index: number) => void;
   onAddItem: () => void;
   displayNumbers?: boolean;
@@ -35,7 +34,7 @@ const ConvertedList = ({ title, buttonTitle, items, onUpdateItem, onDeleteItem, 
         <Section title={title} count={items.length}>
         {items.map((item, index) => (
           <ListItem
-            key={item.converted + index}
+            key={Math.random() + index}
             item={item}
             number={displayNumbers? index + 1: undefined}
             onUpdate={(ing) => onUpdateItem(index, ing)}

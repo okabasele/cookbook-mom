@@ -8,9 +8,9 @@ export interface Recipe {
   createdAt: string;
   
   // Translation relationships
-  isOriginal: boolean;
+  isOriginal?: boolean;
   originalRecipeId?: string;    // null if isOriginal=true
-  translationIds: string[];     // IDs of translations
+  translationIds?: string[];     // IDs of translations
 }
 
 export interface LanguageOption {
