@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { useColorScheme } from "react-native";
-import iOS from '@/styles/ios';
+import '@/styles/ios';
 
 
 export default function RootLayout() {

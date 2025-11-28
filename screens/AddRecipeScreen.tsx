@@ -14,7 +14,8 @@ import { mockYouTubeExtraction } from '../utils/conversions';
 import PickerModal from '@/components/ui/PickerModal';
 import { NavButton } from '@/components/ui/NavButton';
 import { saveRecipe } from '@/utils/storage';
-import { Recipe } from '@/types/Recipe';
+import { LanguageAvailable, Recipe } from '@/types/Recipe';
+import { retrieveYoutubeVideoRecipe } from '@/services/youtube.service';
 
 const LANGUAGES = [
   { value: 'fr', label: 'Français', icon: '🇫🇷' },
@@ -42,7 +43,7 @@ export function AddRecipeScreen() {
   // Form data
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [urlError, setUrlError] = useState('');
-  const [targetLang, setTargetLang] = useState('fr');
+  const [targetLang, setTargetLang] = useState<LanguageAvailable>('fr');
   const [showLangPicker, setShowLangPicker] = useState(false);
 
   const [title, setTitle] = useState('');
@@ -93,7 +94,8 @@ export function AddRecipeScreen() {
       // Stage 3: Convert
       await new Promise((resolve) => setTimeout(resolve, 800));
       setAnalysisStep(3);
-
+          const testData = await retrieveYoutubeVideoRecipe(youtubeUrl, targetLang);
+    console.log({ testData });
       const data = await mockYouTubeExtraction(youtubeUrl, targetLang);
       setTitle(data.title);
       setIngredients(data.ingredients);
@@ -296,7 +298,7 @@ export function AddRecipeScreen() {
         options={LANGUAGES}
         value={targetLang}
         title="Traduire en"
-        onChange={setTargetLang}
+        onChange={(value: string) => setTargetLang(value as LanguageAvailable)}
         onClose={() => setShowLangPicker(false)}
       />
       <PickerModal
@@ -327,26 +329,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: iOS.spacing.standard,
   },
-
-  // navButton: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  //   gap: 4,
-  //   padding: iOS.spacing.compact,
-  // },
-
-  // navButtonText: {
-  //   ...iOS.typography.body,
-  //   color: iOS.colors.tint,
-  // },
-
-  // navButtonBold: {
-  //   fontWeight: '600',
-  // },
-
-  // navButtonDisabled: {
-  //   color: iOS.colors.tertiaryLabel,
-  // },
 
   navSpacer: {
     width: 60,

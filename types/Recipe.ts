@@ -3,7 +3,7 @@ export interface Recipe {
   title: string;
   ingredients: string[];
   steps: string[];
-  detectedLanguage: 'en' | 'fr';
+  detectedLanguage: LanguageAvailable;
   sourceUrl?: string;
   createdAt: string;
   
@@ -13,8 +13,10 @@ export interface Recipe {
   translationIds?: string[];     // IDs of translations
 }
 
+export type LanguageAvailable = 'en' | 'fr';
+
 export interface LanguageOption {
-  code: 'en' | 'fr';
+  code: LanguageAvailable;
   name: string;
   flag: string;
 }
@@ -23,17 +25,3 @@ export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'fr', name: 'Français', flag: '🇫🇷' }
 ];
-
-export interface TranslationPreviewData {
-  title: string;
-  ingredients: string[];
-  steps: string[];
-  detectedLanguage: 'en' | 'fr';
-}
-
-export interface MockTranslation {
-  title: string;
-  ingredients: string[];
-  steps: string[];
-  targetLanguage: 'en' | 'fr';
-}

@@ -60,7 +60,7 @@ export function RecipeDetailScreen() {
     navigation.setOptions({
       headerLeft: () => (
         <NavButton
-          onPress={() => router.dismissTo("/(tabs)" as any)}
+          onPress={() => router.dismissTo("/(tabs)/recipes")}
           icon={<ChevronLeft size={18} color={iOS.colors.tint} />}
         />
       ),
@@ -80,7 +80,7 @@ export function RecipeDetailScreen() {
       const loadedRecipe = await getRecipeById(recipeId);
       if (!loadedRecipe) {
         Alert.alert('Erreur', 'Recette introuvable');
-        router.dismissTo("/(tabs)" as any);
+        router.dismissTo("/(tabs)/recipes");
         return;
       }
 
