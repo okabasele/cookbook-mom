@@ -60,7 +60,7 @@ export function RecipeDetailScreen() {
     navigation.setOptions({
       headerLeft: () => (
         <NavButton
-          onPress={() => router.replace('/(tabs)/index')}
+          onPress={() => router.dismissTo("/(tabs)" as any)}
           icon={<ChevronLeft size={18} color={iOS.colors.tint} />}
         />
       ),
@@ -80,7 +80,7 @@ export function RecipeDetailScreen() {
       const loadedRecipe = await getRecipeById(recipeId);
       if (!loadedRecipe) {
         Alert.alert('Erreur', 'Recette introuvable');
-        router.replace('/(tabs)/index');
+        router.dismissTo("/(tabs)" as any);
         return;
       }
 

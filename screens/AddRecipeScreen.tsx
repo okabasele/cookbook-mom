@@ -149,8 +149,7 @@ export function AddRecipeScreen() {
       isOriginal: false,
       translationIds: [],
       }
-saveRecipe(recipe)
-
+    saveRecipe(recipe)
     Alert.alert(
       '✅ Recette sauvegardée',
       `Titre: ${title}\nIngrédients: ${ingredients.length}\nÉtapes: ${steps.length}`,
@@ -167,7 +166,8 @@ saveRecipe(recipe)
             setPrepTime(0);
             setCookTime(0);
             setDifficulty('easy');
-            router.replace(`recipe-detail/${recipe.id}`)},
+            router.replace(`/recipe-detail/${recipe.id}`)
+          },
         },
       ]
     );
