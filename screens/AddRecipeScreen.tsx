@@ -94,8 +94,8 @@ export function AddRecipeScreen() {
       // Stage 3: Convert
       await new Promise((resolve) => setTimeout(resolve, 800));
       setAnalysisStep(3);
-          const testData = await retrieveYoutubeVideoRecipe(youtubeUrl, targetLang);
-    console.log({ testData });
+          // const testData = await retrieveYoutubeVideoRecipe(youtubeUrl, targetLang);
+// console.log({ testData });
       const data = await mockYouTubeExtraction(youtubeUrl, targetLang);
       setTitle(data.title);
       setIngredients(data.ingredients);
